@@ -59,16 +59,16 @@
    }
 
    if(model == "t_t_ld_mod1"){
-     res <- stan(model_code = t_t_mod1, data = dat_t_t, ...)
+     res <- stan(model_code = t_t_ld_mod1, data = dat_t_t, ...)
    }
 
 
    if(model == "t_t_ld_mod2"){
-     res <- stan(model_code = t_t_mod2, data = dat_t_t, ...)
+     res <- stan(model_code = t_t_ld_mod2, data = dat_t_t, ...)
    }
 
    if(model == "t_t_ld_mod3"){
-     res <- stan(model_code = t_t_mod3,data = dat_t_t, ...)
+     res <- stan(model_code = t_t_ld_mod3,data = dat_t_t, ...)
    }
 
    ## time-varying d.o.f for Z
@@ -92,7 +92,7 @@
                     priors = c(5, 2, 5, 5, 4.6)
      )
 
-     res <- stan(model_code = t_t_tv, data = dat_tv, ...)
+     res <- stan(model_code = t_t_tv_ld, data = dat_tv, ...)
    }
  return(res)
  }
