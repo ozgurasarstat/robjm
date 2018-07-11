@@ -89,7 +89,7 @@
 
    ## time-varying d.o.f for Z
 
-   if(model = "t_t_tv"){
+   if(model == "t_t_tv"){
      a <- ns(data[, spline[[1]], df = spline[[2]])
      ncol_a <- ncol(a)
      attributes(a) <- NULL
