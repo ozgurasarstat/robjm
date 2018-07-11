@@ -26,7 +26,7 @@
    d <- do.call(magic::adiag, id_dmat_list)
 
    ## Fit the normal - normal model
-   id(model == "nor_nor"){
+   if(model == "nor_nor"){
      dat_nor_nor <- list(ntot = nrow(data),
                          id = data[, id],
                          y = y,
