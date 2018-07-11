@@ -38,7 +38,7 @@
                          priors = c(5, 2, 5, 5)
                          )
 
-     res_nor_nor <- stan(model_code = nor_ld_nor_ld,
+     res_nor_nor <- stan(model_code = nor_nor_ld,
                          data = dat_nor_nor,
                          ...
                          )
