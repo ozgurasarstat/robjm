@@ -11,15 +11,14 @@
    ## be sure that id is: 1, 2, 3, ...
    data[, id] <- rep(1:length(unique(data[, id])), as.numeric(table(data[, id])))
 
-   ## x matrix
+   ## x and y matrices
    x <- model.matrix(fixed, data)
    y <- as.matrix(model.frame(fixed, data)[, 1])
 
    ## create blok-diagonal random effects design matrix
    id_dmat <- data.frame(data[, id], model.matrix(random, data))
    id_dmat_list <- lapply(split(id_dmat[, -1], id_dmat[, 1]), as.matrix)
-   d <- do.call(adiag, id_dmat_list)
-
+   d <- do.call(magic::adiag, id_dmat_list)
 
    ## Fit the normal - normal model
    id(model = "nor_nor"){
@@ -35,7 +34,7 @@
                          )
 
      source("normal_normal.R")
-     res_nor_nor <- stan(model_code = normal_normal,
+     res_nor_nor <- stan(model_code = nor_ld_nor_ld,
                          data = dat_nor_nor,
                          ...
                          )
