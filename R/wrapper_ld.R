@@ -82,37 +82,36 @@
    if(model == "t_t_mod3"){
      res_t_t_mod3 <- stan(model_code = t_t_mod3,
                           data = dat_t_t,
-                          chains = 2,
                           ...
                           )
      res_t_t_mod3
    }
 
-   ## CONTINUE
+   ## time-varying d.o.f for Z
 
-   ### TIME-VARYING
+   if(model = "t_t_tv"){
+     a <- ns(data[, spline[[1]], df = spline[[2]])
+     ncol_a <- ncol(a)
+     attributes(a) <- NULL
+     a <- matrix(a, ncol = ncol_a)
 
-   a <- ns(Orthodont$age2, df = 1)
-   attributes(a) <- NULL
-   a <- matrix(a, ncol = 1)
+     dat_tv <- list(ntot = nrow(data),
+                    id = data[, id],
+                    y = y,
+                    x = x,
+                    d = d,
+                    p = ncol(x),
+                    q = ncol(id_dmat) - 1,
+                    ngroup = length(unique(data[, id])),
+                    s = ncol(a),
+                    a = a,
+                    priors = c(5, 2, 5, 5, 4.6)
+     )
 
-   dat_tv <- list(ntot = nrow(Orthodont),
-                  id = Orthodont$id,
-                  y = Orthodont$distance,
-                  x = x,
-                  d = d,
-                  p = ncol(x),
-                  q = 2,
-                  ngroup = length(unique(Orthodont$id)),
-                  s = ncol(a),
-                  a = a,
-                  priors = c(5, 2, 5, 5, 4.6)
-   )
-
-   source("t_t_tv.R")
-   res_t_t_tv <- stan(model_code = t_t_tv,
-                      data = dat_tv,
-                      ...)
-   res_t_t_tv
+     res_t_t_tv <- stan(model_code = t_t_tv,
+                        data = dat_tv,
+                        ...)
+     res_t_t_tv
+   }
 
  }
