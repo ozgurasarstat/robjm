@@ -18,7 +18,7 @@
 
    ## x and y matrices
    x <- model.matrix(fixed, data)
-   y <- as.matrix(model.frame(fixed, data)[, 1])
+   y <- model.frame(fixed, data)[, 1]
 
    ## create blok-diagonal random effects design matrix
    id_dmat <- data.frame(data[, id], model.matrix(random, data))
