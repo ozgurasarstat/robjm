@@ -37,12 +37,8 @@
                          ngroup = length(unique(data[, id])),
                          priors = c(5, 2, 5, 5)
                          )
+     res <- stan(model_code = nor_nor_ld, data = dat_nor_nor, ...)
 
-     res_nor_nor <- stan(model_code = nor_nor_ld,
-                         data = dat_nor_nor,
-                         ...
-                         )
-     res_nor_nor
    }
 
 
@@ -63,28 +59,16 @@
    }
 
    if(model == "t_t_mod1"){
-     res_t_t_mod1 <- stan(model_code = t_t_mod1,
-                          data = dat_t_t,
-                          ...
-                          )
-     res_t_t_mod1
+     res <- stan(model_code = t_t_mod1, data = dat_t_t, ...)
    }
 
 
    if(model == "t_t_mod2"){
-     res_t_t_mod2 <- stan(model_code = t_t_mod2,
-                          data = dat_t_t,
-                          ...
-                          )
-     res_t_t_mod2
+     res <- stan(model_code = t_t_mod2, data = dat_t_t, ...)
    }
 
    if(model == "t_t_mod3"){
-     res_t_t_mod3 <- stan(model_code = t_t_mod3,
-                          data = dat_t_t,
-                          ...
-                          )
-     res_t_t_mod3
+     res <- stan(model_code = t_t_mod3,data = dat_t_t, ...)
    }
 
    ## time-varying d.o.f for Z
@@ -108,10 +92,7 @@
                     priors = c(5, 2, 5, 5, 4.6)
      )
 
-     res_t_t_tv <- stan(model_code = t_t_tv,
-                        data = dat_tv,
-                        ...)
-     res_t_t_tv
+     res <- stan(model_code = t_t_tv, data = dat_tv, ...)
    }
-
+ return(res)
  }
