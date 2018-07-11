@@ -8,6 +8,11 @@
    ## model: model identifier: "nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "t_t_tv"
    ## spline: a list: name of the time variable, and number of knots
 
+   ## be sure that distribution specifications are correct
+   if(!(model %in% c("nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "t_t_tv"))){
+     stop("Model should be one of the followings: nor_nor, t_t_mod1, t_t_mod2, t_t_mod3, t_t_tv")
+   }
+
    ## be sure that id is: 1, 2, 3, ...
    data[, id] <- rep(1:length(unique(data[, id])), as.numeric(table(data[, id])))
 
@@ -21,19 +26,18 @@
    d <- do.call(magic::adiag, id_dmat_list)
 
    ## Fit the normal - normal model
-   id(model = "nor_nor"){
+   id(model == "nor_nor"){
      dat_nor_nor <- list(ntot = nrow(data),
-                         id = data[, "id"],
+                         id = data[, id],
                          y = y,
                          x = x,
                          d = d,
                          p = ncol(x),
                          q = ncol(id_dmat) - 1,
-                         ngroup = length(unique(data[, "id"])),
+                         ngroup = length(unique(data[, id])),
                          priors = c(5, 2, 5, 5)
                          )
 
-     source("normal_normal.R")
      res_nor_nor <- stan(model_code = nor_ld_nor_ld,
                          data = dat_nor_nor,
                          ...
@@ -42,47 +46,49 @@
    }
 
 
-   ## t-t models
+   ## t-t models - time invariant d.o.f.
 
-   dat_t_t <- list(ntot = nrow(Orthodont),
-                   id = Orthodont$id,
-                   y = Orthodont$distance,
-                   x = x,
-                   d = d,
-                   p = ncol(x),
-                   q = 2,
-                   ngroup = length(unique(Orthodont$id)),
-                   priors = c(5, 2, 5, 5)
-   )
+   # prepare data-set first, common to t_t_mod1, t_t_mod2, t_t_mod3
+   if(model %in% c("t_t_mod1", "t_t_mod2", "t_t_mod3")){
+     dat_t_t <- list(ntot = nrow(data),
+                     id = data[, id],
+                     y = y,
+                     x = x,
+                     d = d,
+                     p = ncol(x),
+                     q = ncol(id_dmat) - 1,
+                     ngroup = length(unique(data[, id])),
+                     priors = c(5, 2, 5, 5)
+                     )
+   }
 
-   source("t_t_mod1.R")
-   res_t_t_mod1 <- stan(model_code = t_t_mod1,
-                        data = dat_t_t,
-                        chains = 2,
-                        iter = 2000,
-                        warmup = 500,
-                        control = list(adapt_delta = 0.99)
-   )
-   print(res_t_t_mod1, digits = 4, pars = c("alpha", "Sigma", "sigmasq", "phi"))
+   if(model == "t_t_mod1"){
+     res_t_t_mod1 <- stan(model_code = t_t_mod1,
+                          data = dat_t_t,
+                          ...
+                          )
+     res_t_t_mod1
+   }
 
-   source("t_t_mod2.R")
-   res_t_t_mod2 <- stan(model_code = t_t_mod2,
-                        data = dat_t_t,
-                        chains = 2,
-                        iter = 2000,
-                        warmup = 500,
-                        control = list(adapt_delta = 0.99)
-   )
-   print(res_t_t_mod2, digits = 4, pars = c("alpha", "Sigma", "sigmasq", "phi", "delta"))
 
-   source("t_t_mod3.R")
-   res_t_t_mod3 <- stan(model_code = t_t_mod3,
-                        data = dat_t_t,
-                        chains = 2,
-                        iter = 2000,
-                        warmup = 500,
-                        control = list(adapt_delta = 0.99)
-   )
+   if(model == "t_t_mod2"){
+     res_t_t_mod2 <- stan(model_code = t_t_mod2,
+                          data = dat_t_t,
+                          ...
+                          )
+     res_t_t_mod2
+   }
+
+   if(model == "t_t_mod3"){
+     res_t_t_mod3 <- stan(model_code = t_t_mod3,
+                          data = dat_t_t,
+                          chains = 2,
+                          ...
+                          )
+     res_t_t_mod3
+   }
+
+   ## CONTINUE
 
    ### TIME-VARYING
 
