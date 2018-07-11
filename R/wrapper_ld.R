@@ -68,7 +68,7 @@
    }
 
    if(model == "t_t_mod3"){
-     res <- stan(model_code = t_t_ld_mod3,data = dat_t_t, ...)
+     res <- stan(model_code = t_t_ld_mod3, data = dat_t_t, ...)
    }
 
    ## time-varying d.o.f for Z
@@ -90,9 +90,11 @@
                     s = ncol(a),
                     a = a,
                     priors = c(5, 2, 5, 5, 4.6)
-     )
+                    )
 
      res <- stan(model_code = t_t_tv_ld, data = dat_tv, ...)
    }
+
  return(res)
+
  }
