@@ -58,22 +58,22 @@
                      )
    }
 
-   if(model == "t_t_mod1"){
+   if(model == "t_t_ld_mod1"){
      res <- stan(model_code = t_t_mod1, data = dat_t_t, ...)
    }
 
 
-   if(model == "t_t_mod2"){
+   if(model == "t_t_ld_mod2"){
      res <- stan(model_code = t_t_mod2, data = dat_t_t, ...)
    }
 
-   if(model == "t_t_mod3"){
+   if(model == "t_t_ld_mod3"){
      res <- stan(model_code = t_t_mod3,data = dat_t_t, ...)
    }
 
    ## time-varying d.o.f for Z
 
-   if(model == "t_t_tv"){
+   if(model == "t_t_tv_ld"){
      a <- splines::ns(data[, spline[[1]]], df = spline[[2]])
      ncol_a <- ncol(a)
      attributes(a) <- NULL
