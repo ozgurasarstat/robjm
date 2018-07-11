@@ -1,4 +1,4 @@
-normal_normal = "
+nor_nor_ld = "
 
 data{
 int<lower = 1> ntot;        // total number observations
@@ -31,7 +31,7 @@ real<lower = 0> sigma_Z;      // scale parameter of measurement error
 }
 
 transformed parameters{
-cov_matrix[q] Sigma; 
+cov_matrix[q] Sigma;
 vector[ntot] linpred;
 matrix[ngroup * q, 1] Bmat;
 vector[q] zero_B = rep_vector(0, q);

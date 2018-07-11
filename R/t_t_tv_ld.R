@@ -1,4 +1,4 @@
-t_t_tv = "
+t_t_tv_ld = "
 
 data{
 int<lower = 1> ntot;        // total number observations
@@ -14,7 +14,7 @@ matrix[ntot, s] a;          // spline matrix
 vector[5] priors;           // prior hyperparameters, order: theta, omega, sigma_bstar, sigmaZ, beta
 }
 
-transformed data{ 
+transformed data{
 //QR decomposition
 matrix[ntot, p] Q_star;
 matrix[p, p] R_star;
@@ -27,8 +27,8 @@ R_star_inv = inverse(R_star);
 
 parameters{
 vector[p] theta;              // fixed effects coefficients
-matrix[ngroup, q] Bstar;      
-corr_matrix[q] Omega;             
+matrix[ngroup, q] Bstar;
+corr_matrix[q] Omega;
 vector<lower = 0>[q] sigma_Bstar;
 vector<lower = 0>[ngroup] V;
 real<lower = 0.01, upper = 0.5> phi_inv;
@@ -39,7 +39,7 @@ real<lower = 0.01, upper = 0.5> delta0_inv;
 }
 
 transformed parameters{
-cov_matrix[q] Sigma; 
+cov_matrix[q] Sigma;
 vector[ntot] linpred;
 matrix[ngroup, q] B;
 matrix[ngroup * q, 1] B_mat;
