@@ -2,6 +2,6 @@
 
 Install and load using the following lines:
 
-library(devtools)
-install_github("ozgurasarstat/robustjoint")
-library(robustjoint)
+library(devtools)  
+install_github("ozgurasarstat/robustjoint")  
+library(robustjoint)  
