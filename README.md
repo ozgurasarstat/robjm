@@ -3,5 +3,5 @@
 Install and load using the following lines:
 
 library(devtools)  
-install_github("ozgurasarstat/robustjoint")  
-library(robustjoint)  
+install_github("ozgurasarstat/robjm")  
+library(robjm)  
