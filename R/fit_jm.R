@@ -8,7 +8,7 @@ fit_jm <- function(fixed_long,
                    id_surv,
                    model, 
                    bh, #baseline hazard 
-                   spline_tv, 
+                   spline_tv, #spline for tv dof - same in fit_ld
                    Q = 15, 
                    ...){
 
@@ -151,7 +151,7 @@ fit_jm <- function(fixed_long,
 
   
   if(model == "t_t_tv"){
-    a <- splines::ns(long_data[, "obstime"], df = 3)
+    a <- splines::ns(data[, spline[[1]]], df = spline[[2]])
     ncol_a <- ncol(a)
     attributes(a) <- NULL
     a <- matrix(a, ncol = ncol_a)
@@ -187,6 +187,7 @@ fit_jm <- function(fixed_long,
     )
     
     res <- stan(model_code = t_t_tv_jm, data = data_nor_nor_jm, ...)
+    
   }
 
   return(res)  
