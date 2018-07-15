@@ -1,5 +1,5 @@
 
- wrapper_ld <- function(fixed, random, data, id, model, spline, ...){
+ fit_ld <- function(fixed, random, data, id, model, spline, ...){
 
    ## fixed: two-sided formula for fixed effects
    ## random: one-sided formula for random effects
