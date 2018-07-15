@@ -1,4 +1,4 @@
-# robustjoint: An R Package for Robust Joint Models
+# robjm: An R Package for Robust Joint Models
 
 Install and load using the following lines:
 
