@@ -1,5 +1,7 @@
 t_t_jm_mod2 = "
+
 data{
+
 //longitudinal sub-model data
 int<lower = 1> ntot;        // total number observations
 int id[ntot];               // id matrix, takes values like 1, 2, 3, ...
@@ -10,8 +12,10 @@ int<lower = 1> ngroup;      // number of subjects/clusters/groups
 matrix[ntot, p] x;          // fixed effects design matrix
 matrix[ntot, q * ngroup] d; // random effects design matrix, block diagonal
 vector[4] priors_long; // prior hyperparameters, order: alpha, Omega, sigma_B, sigma_Z
+
 //quadratures
 int<lower = 1> Q; //number of Gauss-Legendre quadratures
+
 //survival sub-model data
 int<lower = 1> ntot_quad;         // total number of observations for quadratures
 vector<lower = 0.000001>[ngroup] S;      // survival times
@@ -27,9 +31,13 @@ matrix[ntot_quad, p] x_quad;          // x matrix for quadrature approx
 matrix[ngroup, q * ngroup] d_T;       // d matrix at survival times
 matrix[ntot_quad, q * ngroup] d_quad; // d matrix for qaudrature approx
 vector[3] priors_surv;  //prior hyperparameters, order: zeta, omega, eta
+
 vector[ntot_quad] wt_quad; // extended quadrature weights to be used during Gauss-Legendre approx.
+
 }
+
 parameters{
+
 //longitudinal sub-model
 vector[p] alpha;              // fixed effects coefficients
 matrix[ngroup, q] Bstar;          // random effects coefficients
@@ -40,12 +48,15 @@ real<lower = 0.01, upper = 0.5> phi_inv; // inverse d.o.f. for B
 real<lower = 0.01, upper = 0.5> delta_inv; // inverse d.o.f for Z
 vector<lower = 0>[ngroup] V;
 vector<lower = 0>[ngroup] W;
+
 //survival sub-model
 vector[ncol_e] zeta;  // spline coefficents for baseline hazard
 vector[ncol_c] omega; // fixed effects parameters
 real eta;             // association parameter
 }
+
 transformed parameters{
+
 cov_matrix[q] Sigma; 
 vector[ntot] linpred;
 matrix[ngroup, q] B;         
@@ -53,6 +64,7 @@ matrix[ngroup * q, 1] Bmat;
 vector[q] zero_B = rep_vector(0, q);
 real<lower = 2, upper = 100> phi;
 real<lower = 2, upper = 100> delta;
+
 vector[ngroup] lsd_expr1;
 vector[ngroup] lsd_expr1_spl;
 vector[ngroup] lsd_expr1_fix;
@@ -63,15 +75,18 @@ vector[ntot_quad] lsd_expr2_quad_spl;
 vector[ntot_quad]lsd_expr2_quad_fix;
 vector[ntot_quad] lsd_expr2_quad_ystar;
 vector[ngroup] lsd;
+
 //longitudinal sub-model
 phi = 1/phi_inv;
 delta = 1/delta_inv;
 for(i in 1:ngroup){
 B[i, ] = Bstar[i, ] * sqrt(V[i]);
 }
+
 Bmat = to_matrix(B', ngroup * q, 1);
 linpred = x * alpha + to_vector(d * Bmat);
 Sigma = quad_form_diag(Omega, sigma_B);
+
 //survival sub-model, lsd: log-survival density
 lsd_expr1_spl = e * zeta ; 
 lsd_expr1_fix = c * omega; 
@@ -81,29 +96,42 @@ lsd_expr2_quad_spl = e_quad * zeta;
 lsd_expr2_quad_fix = c_quad * omega; 
 lsd_expr2_quad_ystar = x_quad * alpha + to_vector(d_quad * Bmat); 
 lsd_expr2_quad = wt_quad .* exp(lsd_expr2_quad_spl + lsd_expr2_quad_fix + rep_vector(eta, ntot_quad) .* lsd_expr2_quad_ystar);
+
 for(i in 1:ngroup){
 lsd_expr2[i] = 0.5 * S[i] * sum(lsd_expr2_quad[((i-1)*Q+1):(i*Q)]);
 }
+
 lsd = lsd_expr1 - lsd_expr2;
+
 }
+
 model{
+
 alpha ~ cauchy(0, priors_long[1]);
+
 for(i in 1:ngroup){
 Bstar[i] ~ multi_normal(zero_B, Sigma);
 }
+
 Omega ~ lkj_corr(priors_long[2]);
 sigma_B ~ cauchy(0, priors_long[3]);
 sigma_Z ~ cauchy(0, priors_long[4]);
+
 V ~ inv_gamma(phi/2, phi/2);
 //phi_inv ~ uniform(0.01, 0.5);//the prior is uniform with -infty and infty, constrained above
 W ~ inv_gamma(delta/2, delta/2);
 //delta_inv ~ uniform(0.01, 0.5);//the prior is uniform with -infty and infty, constrained above
+
 for(i in 1:ntot) y[i] ~ normal(linpred[i], sigma_Z * sqrt(W[id[i]]));
+
 zeta ~ cauchy(0, priors_surv[1]);
 omega ~ cauchy(0, priors_surv[2]);
 eta ~ cauchy(0, priors_surv[3]);
+
 target += lsd;
+
 }
+
 generated quantities{
 real sigmasq;
 sigmasq = sigma_Z^2;
