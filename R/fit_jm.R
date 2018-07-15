@@ -77,6 +77,79 @@ fit_jm <- function(fixed_long,
   priors_long <- c(5, 2, 5, 5, 5)
   priors_surv <- c(5, 5, 5)
   
+  if(model == "nor_nor_jm"){
+    data_nor_nor <- list(ntot = ntot,
+                        id = id, 
+                        y = y, 
+                        p = p,
+                        q = q,
+                        ngroup = ngroup, 
+                        x = x, 
+                        d = d,
+                        priors_long = priors_long,
+                        priors_surv = priors_surv,
+                        Q = Q,
+                        ntot_quad = ntot_quad,
+                        S = S,
+                        E = E,
+                        ncol_e = ncol_e, 
+                        e = e, 
+                        e_quad = e_quad,
+                        ncol_c = ncol_c, 
+                        c = c, 
+                        c_quad = c_quad,
+                        x_T = x_T,
+                        x_quad = x_quad,
+                        d_T = d_T,
+                        d_quad = d_quad,
+                        wt_quad = wt_quad
+                        )
+    
+    res <- stan(model_code = nor_nor_jm, data = data_nor_nor_jm, ...)
+    
+  }
+  
+  if(model %in% c("t_t_mod1", "t_t_mod2", "t_t_mod3")){
+    data_t_t <- list(ntot = ntot,
+                         id = id, 
+                         y = y, 
+                         p = p,
+                         q = q,
+                         ngroup = ngroup, 
+                         x = x, 
+                         d = d,
+                         priors_long = priors_long,
+                         priors_surv = priors_surv,
+                         Q = Q,
+                         ntot_quad = ntot_quad,
+                         S = S,
+                         E = E,
+                         ncol_e = ncol_e, 
+                         e = e, 
+                         e_quad = e_quad,
+                         ncol_c = ncol_c, 
+                         c = c, 
+                         c_quad = c_quad,
+                         x_T = x_T,
+                         x_quad = x_quad,
+                         d_T = d_T,
+                         d_quad = d_quad,
+                         wt_quad = wt_quad
+                     )
+
+    if(model == "t_t_mod1"){
+      res <- stan(model_code = t_t_jm_mod1, data = data_t_t, ...)
+    } 
+    if(model == "t_t_mod2"){
+      res <- stan(model_code =t_t_jm_mod2, data = data_t_t, ...)
+    }
+    if(model == "t_t_mod3"){
+      res <- stan(model_code = t_t_jm_mod3, data = data_t_t, ...)
+    }
+    
+ }
+
+  
   if(model == "t_t_tv"){
     a <- splines::ns(long_data[, "obstime"], df = 3)
     ncol_a <- ncol(a)
@@ -113,13 +186,9 @@ fit_jm <- function(fixed_long,
                         a = a
     )
     
-    res <- stan(model_code = t_t_tv_jm,
-                data = data_nor_nor_jm,
-                ...
-    )
+    res <- stan(model_code = t_t_tv_jm, data = data_nor_nor_jm, ...)
   }
 
   return(res)  
   
 }
-
