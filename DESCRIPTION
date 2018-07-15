@@ -9,5 +9,5 @@ Description: More about what it does (maybe more than one line)
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
-Depends: splines, rstan, magic
+Depends: splines, rstan, magic, statmod
 RoxygenNote: 6.0.1
