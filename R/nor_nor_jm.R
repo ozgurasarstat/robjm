@@ -31,7 +31,7 @@ matrix[ntot_quad, p] x_quad;          // x matrix for quadrature approx
 matrix[ngroup, q * ngroup] d_T;       // d matrix at survival times
 matrix[ntot_quad, q * ngroup] d_quad; // d matrix for qaudrature approx
 
-vector[3] priors_surv;          //prior hyperparameters
+vector[3] priors_surv;  //prior hyperparameters, order: zeta, omega, eta
 
 vector[ntot_quad] wt_quad; // extended quadrature weights to be used during Gauss-Legendre approx.
 
