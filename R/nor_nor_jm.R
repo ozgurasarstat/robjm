@@ -10,7 +10,7 @@ int<lower = 1> q;           // number of covariates in the random effects design
 int<lower = 1> ngroup;      // number of subjects/clusters/groups
 matrix[ntot, p] x;          // fixed effects design matrix
 matrix[ntot, q * ngroup] d; // random effects design matrix, block diagonal
-//vector[4] priors; // prior hyperparameters, order: alpha, Omega, sigma_B, sigma_Z
+vector[4] priors_long; // prior hyperparameters, order: alpha, Omega, sigma_B, sigma_Z
 
 //quadratures
 int<lower = 1> Q; //number of Gauss-Legendre quadratures
@@ -31,7 +31,7 @@ matrix[ntot_quad, p] x_quad;          // x matrix for quadrature approx
 matrix[ngroup, q * ngroup] d_T;       // d matrix at survival times
 matrix[ntot_quad, q * ngroup] d_quad; // d matrix for qaudrature approx
 
-//vector[4] priors_surv;          //prior hyperparameters
+vector[3] priors_surv;          //prior hyperparameters
 
 vector[ntot_quad] wt_quad; // extended quadrature weights to be used during Gauss-Legendre approx.
 
@@ -97,21 +97,21 @@ lsd = lsd_expr1 - lsd_expr2;
 
 model{
 
-alpha ~ cauchy(0, 5);
+alpha ~ cauchy(0, priors_long[1]);
 
 for(i in 1:ngroup){
 B[i] ~ multi_normal(zero_B, Sigma);
 }
 
-Omega ~ lkj_corr(2);
-sigma_B ~ cauchy(0, 5);
-sigma_Z ~ cauchy(0, 5);
+Omega ~ lkj_corr(priors_long[2]);
+sigma_B ~ cauchy(0, priors_long[3]);
+sigma_Z ~ cauchy(0, priors_long[4]);
 
 y ~ normal(linpred, sigma_Z);
 
-zeta ~ cauchy(0, 5);
-omega ~ cauchy(0, 5);
-eta ~ cauchy(0, 5);
+zeta ~ cauchy(0, priors_surv[1]);
+omega ~ cauchy(0, priors_surv[2]);
+eta ~ cauchy(0, priors_surv[3]);
 
 target += lsd;
 
