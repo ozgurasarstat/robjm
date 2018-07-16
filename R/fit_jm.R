@@ -19,6 +19,7 @@ fit_jm <- function(fixed_long,
   
   ## be sure that id is: 1, 2, 3, ...
   data_long[, id_long] <- rep(1:length(unique(data_long[, id_long])), as.numeric(table(data_long[, id_long])))
+  id <- data_long[, id_long]
   
   ## x and y matrices
   x <- model.matrix(fixed_long, data_long)
