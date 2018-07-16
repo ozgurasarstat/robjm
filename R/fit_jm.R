@@ -43,7 +43,7 @@ fit_jm <- function(fixed_long,
   
   ntot_quad <- ngroup * Q
   
-  mf_surv <- model.frame(fixed_surv, data)
+  mf_surv <- model.frame(fixed_surv, data_surv)
   S <- mf_surv[, 1]
   E <- mf_surv[, 2]
   
@@ -58,7 +58,7 @@ fit_jm <- function(fixed_long,
   #attributes(e_quad) <- NULL
   #e_quad <- matrix(e_quad, ncol = 3)
   
-  c <- model.matrix(cbind(a, b) ~ c, data)[, -1, drop = FALSE]
+  c <- model.matrix(fixed_surv, data_surv)[, -1, drop = FALSE]
   ncol_c <- ncol(c)
   c_quad <- apply(c, 2, function(i) rep(i, each = Q))
   
@@ -151,7 +151,7 @@ fit_jm <- function(fixed_long,
 
   
   if(model == "t_t_tv"){
-    a <- splines::ns(data[, spline[[1]]], df = spline[[2]])
+    a <- splines::ns(data_long[, spline[[1]]], df = spline[[2]])
     ncol_a <- ncol(a)
     attributes(a) <- NULL
     a <- matrix(a, ncol = ncol_a)
