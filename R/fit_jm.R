@@ -87,7 +87,7 @@ fit_jm <- function(fixed_long,
   wt_quad <- rep(wt, ngroup)
   
   ## prior hyperparameters
-  priors_long <- c(5, 2, 5, 5, 5)
+  priors_long <- c(5, 2, 5, 5)
   priors_surv <- c(5, 5, 5)
   
   if(model == "nor_nor"){
