@@ -10,7 +10,7 @@ TO DO:
 
 add priors and Q into control list
 
-id_dmat_T and id_dmat_quad only works for random intercept and slope
+x_T, x_quad, d_T, d_quad only work for random intercept and slope -- ask timeVar from the user?
 
 baseline hazard is divided into 2 as piecewise constants
 
