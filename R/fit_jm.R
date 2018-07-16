@@ -49,8 +49,8 @@ fit_jm <- function(fixed_long,
   
   ## extract survival times and event indicator
   mf_surv <- model.frame(fixed_surv, data_surv)
-  S <- mf_surv[, 1]
-  E <- mf_surv[, 2]
+  S <- mf_surv[, 1][, 1]
+  E <- mf_surv[, 2][, 2]
   
   ## calculate times for hazard function for quadrature approx
   t_quad <- 0.5 * rep(S, each = Q) * (1 + rep(pt, ngroup))
