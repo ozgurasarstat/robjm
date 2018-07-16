@@ -164,7 +164,7 @@ fit_jm <- function(fixed_long,
 
   
   if(model == "t_t_tv"){
-    a <- splines::ns(data_long[, spline[[1]]], df = spline[[2]])
+    a <- splines::ns(data_long[, spline_tv[[1]]], df = spline_tv[[2]])
     ncol_a <- ncol(a)
     attributes(a) <- NULL
     a <- matrix(a, ncol = ncol_a)
