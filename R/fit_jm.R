@@ -118,7 +118,7 @@ fit_jm <- function(fixed_long,
                         wt_quad = wt_quad
                         )
     
-    res <- stan(model_code = nor_nor_jm, data = data_nor_nor_jm, ...)
+    res <- stan(model_code = nor_nor_jm, data = data_nor_nor, ...)
     
   }
   
@@ -199,7 +199,7 @@ fit_jm <- function(fixed_long,
                         a = a
     )
     
-    res <- stan(model_code = t_t_tv_jm, data = data_nor_nor_jm, ...)
+    res <- stan(model_code = t_t_tv_jm, data = data_t_t_tv, ...)
     
   }
 
