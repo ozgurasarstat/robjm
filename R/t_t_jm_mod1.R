@@ -69,7 +69,6 @@ vector[ngroup] lsd;
 
 //longitudinal sub-model
 phi = 1/phi_inv;
-delta = 1/delta_inv;
 for(i in 1:ngroup){
 B[i, ] = Bstar[i, ] * sqrt(V[i]);
 }
