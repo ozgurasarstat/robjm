@@ -35,7 +35,7 @@ fit_jm <- function(fixed_long,
   
   ngroup <- length(unique(id_long))
   
-  x <- cbind(1, long_data$obstime)
+  x <- cbind(1, data_long$obstime)
   
   gl_quad <- statmod::gauss.quad(Q)
   wt <- gl_quad$weights
@@ -65,11 +65,11 @@ fit_jm <- function(fixed_long,
   x_T <- cbind(1, S)
   x_quad <- cbind(1, t_quad)
   
-  id_dmat_T <- data.frame(surv_data[, id_surv], cbind(1, S))
+  id_dmat_T <- data.frame(data_surv[, id_surv], cbind(1, S))
   id_dmat_list_T <- lapply(split(id_dmat_T[, -1], id_dmat_T[, 1]), as.matrix)
   d_T <- do.call(magic::adiag, id_dmat_list_T)
   
-  id_dmat_quad <- data.frame(rep(surv_data[, id_surv], each = Q), cbind(1, t_quad))
+  id_dmat_quad <- data.frame(rep(data_surv[, id_surv], each = Q), cbind(1, t_quad))
   id_dmat_list_quad <- lapply(split(id_dmat_quad[, -1], id_dmat_quad[, 1]), as.matrix)
   d_quad <- do.call(magic::adiag, id_dmat_list_quad)
   
