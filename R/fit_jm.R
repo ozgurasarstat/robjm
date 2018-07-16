@@ -89,7 +89,7 @@ fit_jm <- function(fixed_long,
   priors_long <- c(5, 2, 5, 5, 5)
   priors_surv <- c(5, 5, 5)
   
-  if(model == "nor_nor_jm"){
+  if(model == "nor_nor"){
     data_nor_nor <- list(ntot = ntot,
                         id = id, 
                         y = y, 
