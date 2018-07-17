@@ -81,7 +81,7 @@ V ~ inv_gamma(phi/2, phi/2);
 //phi_inv ~ uniform(0.01, 0.5);//uniform -infty, infty, constrained above
 
 for(i in 1:ntot){
-W[i] ~ inv_gamma(delta[i]/2, delta[i]/2);
+W[i] ~ inv_gamma(delta[i]/2, delta[i]/2 - 1);
 }
 
 beta ~ cauchy(0, priors[5]);
