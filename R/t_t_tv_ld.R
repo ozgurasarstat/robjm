@@ -35,7 +35,7 @@ real<lower = 2, upper = 100> phi;
 real<lower = 0> sigma_Zstar;      // scale parameter of measurement error
 vector<lower = 0>[ntot] W;
 vector[s] beta;
-real delta0;
+real<lower = 2, upper = 100> delta0;
 }
 
 transformed parameters{
@@ -46,7 +46,8 @@ matrix[ngroup * q, 1] B_mat;
 vector<lower = 0>[ntot] delta;
 vector[q] zero_Bstar = rep_vector(0, q);
 
-delta = to_vector(2 + exp(delta0 + a * beta));
+//delta = to_vector(2 + exp(delta0 + a * beta));
+delta = to_vector(delta0 * exp(a * beta));
 
 for(i in 1:ngroup){
 B[i, ] = Bstar[i, ] * sqrt(V[i]);
