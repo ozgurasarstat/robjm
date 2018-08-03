@@ -4,8 +4,8 @@ Title: Joint Models for Longitudinal and Survival Data with Normal and non-Norma
 Version: 0.1.0
 Author: Ozgur Asar
 Maintainer: Ozgur Asar <ozgurasarstat@gmail.com>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Description: Estimation and prediction for joint models for longitudinal 
+             and survival data under Normal and non-Normal distributions
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
