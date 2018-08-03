@@ -81,7 +81,7 @@ W[i] ~ inv_gamma(delta[i]/2, delta[i]/2 - 1);
 }
 
 beta ~ cauchy(0, priors[5]);
-delta0 ~ cauchy(0, priors[5]);
+//delta0 ~ uniform(2, 100); //delta0 ~ cauchy(0, priors[5]);
 
 for(i in 1:ntot)
 y[i] ~ normal(linpred[i], sigma_Zstar * sqrt(W[i]));
