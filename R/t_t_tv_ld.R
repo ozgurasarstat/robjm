@@ -46,7 +46,7 @@ matrix[ngroup * q, 1] B_mat;
 vector<lower = 0>[ntot] delta;
 vector[q] zero_Bstar = rep_vector(0, q);
 
-delta = to_vector(exp(delta0 + a * beta));
+delta = to_vector(2 + exp(delta0 + a * beta));
 
 for(i in 1:ngroup){
 B[i, ] = Bstar[i, ] * sqrt(V[i]);
