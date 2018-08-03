@@ -29,7 +29,7 @@ matrix[ngroup, q] Bstar;                   // Bstar matrix
 corr_matrix[q] Omega;                      // correlation matrix for Bstar
 vector<lower = 0>[q] sigma_Bstar;          // scale parameters for Bstar
 vector<lower = 0>[ngroup] V;               // scaling r.v. for B and Z
-real<lower = 0.01, upper = 0.5> phi_inv;   // inverse of the parameter for V
+real<lower = 2, upper = 100> phi;          // the parameter for V
 real<lower = 0> sigma_Zstar;               // scale parameter of measurement error
 }
 
@@ -38,10 +38,7 @@ cov_matrix[q] Sigma;
 vector[ntot] linpred;
 matrix[ngroup, q] B;
 matrix[ngroup * q, 1] B_mat;
-real<lower = 2, upper = 100> phi;
 vector[q] zero_Bstar = rep_vector(0, q);
-
-phi = 1/phi_inv;
 
 for(i in 1:ngroup){
 B[i, ] = Bstar[i, ] * sqrt(V[i]);
@@ -68,7 +65,7 @@ sigma_Bstar ~ cauchy(0, priors[3]);
 sigma_Zstar ~ cauchy(0, priors[4]);
 
 V ~ inv_gamma(phi/2, phi/2);
-//phi_inv ~ uniform(0.01, 0.5);//the prior is uniform with -infty and infty, constrained above
+//phi ~ uniform(2, 100);//the prior is uniform with -infty and infty, constrained above
 
 for(i in 1:ntot) y[i] ~ normal(linpred[i], sigma_Zstar * sqrt(V[id[i]]));
 
