@@ -16,8 +16,4 @@ baseline hazard is divided into 2 as piecewise constants
 
 prediction functions
 
-no need for 1/phi
-
-but delta0 to exp
-
-make delta = exp(2+exp(beta0 + a beta))
+phi or 1/phi ???
