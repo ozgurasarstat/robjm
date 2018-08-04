@@ -29,10 +29,10 @@ matrix[ngroup, q] Bstar;                   // Bstar matrix
 corr_matrix[q] Omega;                      // correlation matrix for Bstar
 vector<lower = 0>[q] sigma_Bstar;          // scale parameters for Bstar
 vector<lower = 0>[ngroup] V;               // scaling r.v. for B
-real<lower = 2, upper = 100> phi;   // inverse of the parameter for V
+real<lower = 0.01, upper = 0.5> phi_inv;   // inverse of the parameter for V
 real<lower = 0> sigma_Zstar;               // scale parameter of measurement error
 vector<lower = 0>[ntot] W;                 // scaling r.v. for Z
-real<lower = 2, upper = 100> delta; // inverse of the parameter for W
+real<lower = 0.01, upper = 0.5> delta_inv; // inverse of the parameter for W
 }
 
 transformed parameters{
@@ -41,6 +41,11 @@ vector[ntot] linpred;
 matrix[ngroup, q] B;
 matrix[ngroup * q, 1] B_mat;
 vector[q] zero_Bstar = rep_vector(0, q);
+real<lower = 2, upper = 100> phi;
+real<lower = 2, upper = 100> delta;
+
+phi = 1/phi_inv;
+delta = 1/delta_inv;
 
 for(i in 1:ngroup){
 B[i, ] = Bstar[i, ] * sqrt(V[i]);
@@ -67,10 +72,10 @@ sigma_Bstar ~ cauchy(0, priors[3]);
 sigma_Zstar ~ cauchy(0, priors[4]);
 
 V ~ inv_gamma(phi/2, phi/2);
-//phi ~ uniform(2, 100);//the prior is uniform with -infty and infty, constrained above
+//phi_inv ~ uniform(0.01, 0.5);//the prior is uniform with -infty and infty, constrained above
 
 W ~ inv_gamma(delta/2, delta/2);
-//delta ~ uniform(2, 100);//the prior is uniform with -infty and infty, constrained above
+//delta_inv ~ uniform(0.01, 0.5);//the prior is uniform with -infty and infty, constrained above
 
 for(i in 1:ntot) y[i] ~ normal(linpred[i], sigma_Zstar *sqrt(W[i]));
 
