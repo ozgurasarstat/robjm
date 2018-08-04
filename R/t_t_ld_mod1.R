@@ -29,7 +29,7 @@ matrix[ngroup, q] Bstar;                   // Bstar matrix
 corr_matrix[q] Omega;                      // correlation matrix for Bstar
 vector<lower = 0>[q] sigma_Bstar;          // scale parameters for Bstar
 vector<lower = 0>[ngroup] V;               // scaling r.v. for B and Z
-real<lower = 2, upper = 100> phi;          // the parameter for V
+real<lower = 0.01, upper = 0.5> phi_inv;   // the parameter for V
 real<lower = 0> sigma_Zstar;               // scale parameter of measurement error
 }
 
@@ -39,6 +39,9 @@ vector[ntot] linpred;
 matrix[ngroup, q] B;
 matrix[ngroup * q, 1] B_mat;
 vector[q] zero_Bstar = rep_vector(0, q);
+real<lower = 2, upper = 100> phi;
+
+phi = 1/phi_inv;
 
 for(i in 1:ngroup){
 B[i, ] = Bstar[i, ] * sqrt(V[i]);
