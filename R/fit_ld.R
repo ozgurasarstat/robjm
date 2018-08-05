@@ -6,7 +6,7 @@
    ## data: data frame
    ## id: name of the id column
    ## model: model identifier: "nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "t_t_tv"
-   ## spline: a list: name of the time variable, and number of knots
+   ## spline: a list: name of the time variable, and number of knots plus 1
    ## ... to be passed to stan() function
 
    ## be sure that distribution specifications are correct
