@@ -7,6 +7,7 @@ fit_jm <- function(fixed_long,
                    id_long, 
                    id_surv,
                    model, 
+                   timeVar,
                    bh, #baseline hazard 
                    spline_tv, #spline for tv dof - same in fit_ld
                    Q = 15, 
@@ -19,14 +20,18 @@ fit_jm <- function(fixed_long,
   
   ## be sure that id is: 1, 2, 3, ...
   data_long[, id_long] <- rep(1:length(unique(data_long[, id_long])), as.numeric(table(data_long[, id_long])))
-  id <- data_long[, id_long]
+  l_id <- data_long[, id_long]
+  
+  data_surv[, id_surv] <- rep(1:nrow(data_surv))
+  s_id <- data_surv[, id_surv]
   
   ## x and y matrices
   x <- model.matrix(fixed_long, data_long)
   y <- model.frame(fixed_long, data_long)[, 1]
   
   ## create blok-diagonal random effects design matrix
-  id_dmat <- data.frame(data_long[, id_long], model.matrix(random_long, data_long))
+  dmat <- model.matrix(random_long, data_long)
+  id_dmat <- data.frame(l_id, dmat)
   id_dmat_list <- lapply(split(id_dmat[, -1], id_dmat[, 1]), as.matrix)
   d <- do.call(magic::adiag, id_dmat_list)
   
@@ -37,7 +42,7 @@ fit_jm <- function(fixed_long,
   q <- ncol(id_dmat) - 1
   
   ## number of subjects
-  ngroup <- length(unique(data_long[, id_long]))
+  ngroup <- length(unique(l_id))
   
   ## Gauss - Legendre weights and abscissas
   gl_quad <- statmod::gauss.quad(Q)
@@ -71,15 +76,22 @@ fit_jm <- function(fixed_long,
   c_quad <- apply(c, 2, function(i) rep(i, each = Q))
   
   ## x matrix for log survival density
-  x_T <- cbind(1, S) 
-  x_quad <- cbind(1, t_quad)
+  x_T <- x[!duplicated(l_id), ] #cbind(1, S) 
+  x_T[, timeVar] <- S
+  
+  x_quad <- x_T[rep(1:ngroup, times = Q), ]#cbind(1, t_quad)
+  x_quad[, timeVar] <- t_quad
   
   ## d matrix for log survival density
-  id_dmat_T <- data.frame(data_surv[, id_surv], cbind(1, S))
+  dmat_T <- dmat[!duplicated(l_id), ]
+  dmat_T[, timeVar] <- S
+  id_dmat_T <- data.frame(s_id, dmat_T)#cbind(1, S))
   id_dmat_list_T <- lapply(split(id_dmat_T[, -1], id_dmat_T[, 1]), as.matrix)
   d_T <- do.call(magic::adiag, id_dmat_list_T)
   
-  id_dmat_quad <- data.frame(rep(data_surv[, id_surv], each = Q), cbind(1, t_quad))
+  dmat_quad <- dmat_T[rep(1:ngroup, times = Q), ]
+  dmat_quad[, timeVar] <- t_quad
+  id_dmat_quad <- data.frame(rep(s_id, each = Q), dmat_quad)#cbind(1, t_quad))
   id_dmat_list_quad <- lapply(split(id_dmat_quad[, -1], id_dmat_quad[, 1]), as.matrix)
   d_quad <- do.call(magic::adiag, id_dmat_list_quad)
   
@@ -96,7 +108,7 @@ fit_jm <- function(fixed_long,
   
   if(model == "nor_nor"){
     data_nor_nor <- list(ntot = ntot,
-                        id = id, 
+                        id = l_id, 
                         y = y, 
                         p = p,
                         q = q,
@@ -128,7 +140,7 @@ fit_jm <- function(fixed_long,
   
   if(model %in% c("t_t_mod1", "t_t_mod2", "t_t_mod3")){
     data_t_t <- list(ntot = ntot,
-                         id = id, 
+                         id = l_id, 
                          y = y, 
                          p = p,
                          q = q,
@@ -175,7 +187,7 @@ fit_jm <- function(fixed_long,
     s <- ncol_a
     
     data_t_t_tv <- list(ntot = ntot,
-                        id = id, 
+                        id = l_id, 
                         y = y, 
                         p = p,
                         q = q,
