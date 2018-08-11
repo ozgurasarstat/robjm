@@ -10,8 +10,6 @@ TO DO:
 
 add priors and Q into control list
 
-x_T, x_quad, d_T, d_quad only work for random intercept and slope -- ask timeVar from the user?
-
 baseline hazard is divided into 2 as piecewise constants
 
 prediction functions
