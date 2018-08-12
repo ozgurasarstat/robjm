@@ -61,11 +61,12 @@ fit_jm <- function(fixed_long,
   t_quad <- 0.5 * rep(S, each = Q) * (1 + rep(pt, ngroup))
   
   ## baseline hazard - piecewise constant with one know a.t.m. 
-  ncol_e <- 2
   median_S <- median(S)
   e <- cbind(ifelse(S < median_S, 1, 0), ifelse(S >= median_S, 1, 0))#bs(S, df = 3)
   #attributes(e) <- NULL
   #e <- matrix(e, ncol = 3)
+  ncol_e <- ncol(e)
+  
   e_quad <- cbind(ifelse(t_quad < median_S, 1, 0), ifelse(t_quad >= median_S, 1, 0))#bs(t_quad, df = 3)
   #attributes(e_quad) <- NULL
   #e_quad <- matrix(e_quad, ncol = 3)
