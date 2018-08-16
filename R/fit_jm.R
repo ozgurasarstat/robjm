@@ -8,7 +8,7 @@ fit_jm <- function(fixed_long,
                    id_surv,
                    model, 
                    timeVar,
-                   bh, #baseline hazard 
+                   bh_nknots, #number of knots for baseline hazard 
                    spline_tv, #spline for tv dof - same in fit_ld
                    Q = 15, 
                    priors = list(),
@@ -89,20 +89,22 @@ fit_jm <- function(fixed_long,
   mf_surv <- model.frame(fixed_surv, data_surv)
   S <- mf_surv[, 1][, 1]
   E <- mf_surv[, 1][, 2]
+  S_uncensored <- S[E == 1]
   
   ## calculate times for hazard function for quadrature approx
   t_quad <- 0.5 * rep(S, each = Q) * (1 + rep(pt, ngroup))
   
   ## baseline hazard - piecewise constant with one know a.t.m. 
-  median_S <- median(S)
-  e <- cbind(ifelse(S < median_S, 1, 0), ifelse(S >= median_S, 1, 0))#bs(S, df = 3)
-  #attributes(e) <- NULL
-  #e <- matrix(e, ncol = 3)
+  #median_S <- median(S)
+  knots <- quantiles(S_uncensored, seq(0, 1, bh_nknots)[-c(1, (bh_nknots + 2))])
+  e <- bs(S, knots = knots) #cbind(ifelse(S < median_S, 1, 0), ifelse(S >= median_S, 1, 0))
   ncol_e <- ncol(e)
+  attributes(e) <- NULL
+  e <- matrix(e, ncol = ncol_e)
   
-  e_quad <- cbind(ifelse(t_quad < median_S, 1, 0), ifelse(t_quad >= median_S, 1, 0))#bs(t_quad, df = 3)
-  #attributes(e_quad) <- NULL
-  #e_quad <- matrix(e_quad, ncol = 3)
+  e_quad <- bs(t_quad, knots = knots)#cbind(ifelse(t_quad < median_S, 1, 0), ifelse(t_quad >= median_S, 1, 0))
+  attributes(e_quad) <- NULL
+  e_quad <- matrix(e_quad, ncol = ncol_e)
   
   ## fixed effects for survival sub-model
   c <- model.matrix(fixed_surv, data_surv)[, -1, drop = FALSE]
