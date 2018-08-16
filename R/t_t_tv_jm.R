@@ -10,7 +10,7 @@ int<lower = 1> q;           // number of covariates in the random effects design
 int<lower = 1> ngroup;      // number of subjects/clusters/groups
 matrix[ntot, p] x;          // fixed effects design matrix
 matrix[ntot, q * ngroup] d; // random effects design matrix, block diagonal
-vector[5] priors_long; // prior hyperparameters, order: alpha, Omega, sigma_B, sigma_Z
+vector[5] priors_long; // prior hyperparameters, order: alpha, Omega, sigma_B, sigma_Z, beta
 int<lower = 1> s;           // number of columns of a matrix
 matrix[ntot, s] a;          // spline matrix for tv dof
 

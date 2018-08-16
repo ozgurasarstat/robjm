@@ -25,8 +25,8 @@
    ## re-organise priors
    if(model == "t_t_tv" & length(priors) != 5){
      priors_full <- list(theta = 5, 
-                         omega = 2, 
-                         sigma_Bstar = 5, 
+                         Omega = 2, 
+                         sigma_B = 5, 
                          sigma_Z = 5,
                          beta = 4.6)
      for(i in 1:5){
@@ -37,8 +37,8 @@
    }
    if(model != "t_t_tv" % length(priors) != 4){
      priors_full <- list(theta = 5, 
-                         omega = 2, 
-                         sigma_Bstar = 5, 
+                         Omega = 2, 
+                         sigma_B = 5, 
                          sigma_Z = 5)
      for(i in 1:4){
        if(!(names(priors_full)[i] %in% names(priors))){

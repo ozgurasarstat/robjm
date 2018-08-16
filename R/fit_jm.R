@@ -11,11 +11,44 @@ fit_jm <- function(fixed_long,
                    bh, #baseline hazard 
                    spline_tv, #spline for tv dof - same in fit_ld
                    Q = 15, 
+                   priors = list(),
                    ...){
 
   ## be sure that distribution specifications are correct
   if(!(model %in% c("nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "t_t_tv"))){
     stop("Model should be one of the followings: nor_nor, t_t_mod1, t_t_mod2, t_t_mod3, t_t_tv")
+  }
+  
+  ## organise priors
+  if(model == "t_t_tv" & length(priors) != 8){
+    priors_full <- list(alpha = 5, 
+                        Omega = 2, 
+                        sigma_B = 5, 
+                        sigma_Z = 5,
+                        beta = 4.6,
+                        zeta = 5,
+                        omega = 5,
+                        eta = 5)
+    for(i in 1:8){
+      if(!(names(priors_full)[i] %in% names(priors))){
+        priors[names(priors_full)[i]] <- priors_full[names(priors_full)[i]]
+      }
+    }
+  }
+  
+  if(model != "t_t_tv" & length(priors) != 7){
+    priors_full <- list(alpha = 5, 
+                        Omega = 2, 
+                        sigma_B = 5, 
+                        sigma_Z = 5,
+                        zeta = 5,
+                        omega = 5,
+                        eta = 5)
+    for(i in 1:7){
+      if(!(names(priors_full)[i] %in% names(priors))){
+        priors[names(priors_full)[i]] <- priors_full[names(priors_full)[i]]
+      }
+    }
   }
   
   ## be sure that id is: 1, 2, 3, ...
@@ -101,11 +134,11 @@ fit_jm <- function(fixed_long,
   
   ## prior hyperparameters
   if(model != "t_t_tv"){
-    priors_long <- c(5, 2, 5, 5)
+    priors_long <- unlist(priors)[1:4]
   }else{
-    priors_long <- c(5, 2, 5, 5, 5)
+    priors_long <- unlist(priors)[1:5]
   }
-  priors_surv <- c(5, 5, 5)
+  priors_surv <- rev(unlist(priors))[1:3]
   
   if(model == "nor_nor"){
     data_nor_nor <- list(ntot = ntot,
