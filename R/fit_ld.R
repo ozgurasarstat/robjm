@@ -1,12 +1,20 @@
 
- fit_ld <- function(fixed, random, data, id, model, spline, ...){
+ fit_ld <- function(fixed, 
+                    random, 
+                    data, 
+                    id, 
+                    model, 
+                    spline, 
+                    priors = list(), 
+                    ...){
 
    ## fixed: two-sided formula for fixed effects
    ## random: one-sided formula for random effects
    ## data: data frame
    ## id: name of the id column
-   ## model: model identifier: "nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "t_t_tv"
+   ## model: model identifier, "nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "t_t_tv"
    ## spline: a list: name of the time variable, and number of knots plus 1
+   ## priors: prior hyperparameters, order = theta, omega, sigma_Bstar, sigma_B, beta (for tv)
    ## ... to be passed to stan() function
 
    ## be sure that distribution specifications are correct
@@ -14,6 +22,31 @@
      stop("Model should be one of the followings: nor_nor, t_t_mod1, t_t_mod2, t_t_mod3, t_t_tv")
    }
 
+   ## re-organise priors
+   if(model == "t_t_tv" & length(priors) != 5){
+     priors_full <- list(theta = 5, 
+                         omega = 2, 
+                         sigma_Bstar = 5, 
+                         sigma_Z = 5,
+                         beta = 4.6)
+     for(i in 1:5){
+       if(!(names(priors_full)[i] %in% names(priors))){
+         priors[names(priors_full)[i]] <- priors_full[names(priors_full)[i]]
+       }
+     }
+   }
+   if(model != "t_t_tv" % length(priors) != 4){
+     priors_full <- list(theta = 5, 
+                         omega = 2, 
+                         sigma_Bstar = 5, 
+                         sigma_Z = 5)
+     for(i in 1:4){
+       if(!(names(priors_full)[i] %in% names(priors))){
+         priors[names(priors_full)[i]] <- priors_full[names(priors_full)[i]]
+       }
+     } 
+   }
+   
    ## be sure that id is: 1, 2, 3, ...
    data[, id] <- rep(1:length(unique(data[, id])), as.numeric(table(data[, id])))
 
@@ -28,6 +61,7 @@
 
    ## Fit the normal - normal model
    if(model == "nor_nor"){
+     priors
      dat_nor_nor <- list(ntot = nrow(data),
                          id = data[, id],
                          y = y,
@@ -36,7 +70,7 @@
                          p = ncol(x),
                          q = ncol(id_dmat) - 1,
                          ngroup = length(unique(data[, id])),
-                         priors = c(5, 2, 5, 5)
+                         priors = unlist(priors)
                          )
      res <- stan(model_code = nor_nor_ld, data = dat_nor_nor, ...)
 
@@ -55,7 +89,7 @@
                      p = ncol(x),
                      q = ncol(id_dmat) - 1,
                      ngroup = length(unique(data[, id])),
-                     priors = c(5, 2, 5, 5)
+                     priors = unlist(priors)
                      )
    }
 
@@ -90,7 +124,7 @@
                     ngroup = length(unique(data[, id])),
                     s = ncol(a),
                     a = a,
-                    priors = c(5, 2, 5, 5, 4.6)
+                    priors = unlist(priors)
                     )
 
      res <- stan(model_code = t_t_tv_ld, data = dat_tv, ...)
