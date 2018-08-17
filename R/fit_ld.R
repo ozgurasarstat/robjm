@@ -12,18 +12,18 @@
    ## random: one-sided formula for random effects
    ## data: data frame
    ## id: name of the id column
-   ## model: model identifier, "nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod3", "t_t_tv"
+   ## model: model identifier, "nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod3", "t_t_tv", "nor_t_tv"
    ## spline: a list: name of the time variable, and number of knots plus 1
    ## priors: prior hyperparameters, order = theta, omega, sigma_Bstar, sigma_B, beta (for tv)
    ## ... to be passed to stan() function
 
    ## be sure that distribution specifications are correct
-   if(!(model %in% c("nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod3", "t_t_tv"))){
-     stop("Model should be one of the followings: nor_nor, t_t_mod1, t_t_mod2, t_t_mod3, nor_t_mod3, t_t_tv")
+   if(!(model %in% c("nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod3", "t_t_tv", "nor_t_tv"))){
+     stop("Model should be one of the followings: nor_nor, t_t_mod1, t_t_mod2, t_t_mod3, nor_t_mod3, t_t_tv, nor_t_tv")
    }
 
    ## re-organise priors
-   if(model == "t_t_tv" & length(priors) != 5){
+   if(model %in% c("t_t_tv", "nor_t_tv") & length(priors) != 5){
      priors_full <- list(theta = 5, 
                          Omega = 2, 
                          sigma_B = 5, 
@@ -112,7 +112,7 @@
    
    ## time-varying d.o.f for Z
 
-   if(model == "t_t_tv"){
+   if(model %in% c("t_t_tv", "nor_t_tv")){
      a <- splines::ns(data[, spline[[1]]], df = spline[[2]])
      ncol_a <- ncol(a)
      attributes(a) <- NULL
@@ -130,8 +130,14 @@
                     a = a,
                     priors = unlist(priors)
                     )
-
-     res <- stan(model_code = t_t_tv_ld, data = dat_tv, ...)
+     
+     if(model == "t_t_tv"){
+       res <- stan(model_code = t_t_tv_ld, data = dat_tv, ...)
+     }
+     if(model == "nor_t_tv"){
+       res <- stan(model_code = nor_t_tv_ld, data = dat_tv, ...)
+     }
+  
    }
 
  return(res)
