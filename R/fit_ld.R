@@ -1,3 +1,26 @@
+ #' @title Bayesian inference for mixed models
+ #' 
+ #' @description Fits mixed models with Normal and non-Normal distributions
+ #' 
+ #' @param fixed A two-sided formula for fixed effects
+ #' @param random A one-sided formula for random effects
+ #' @param data A data frame to extract the fixed and random effects design matrices
+ #' @param id A character string that indicates the column name for the id column
+ #' @param model A character string for model identification; options are: 
+ #'             "nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod3", "t_t_tv", "nor_t_tv"
+ #' @param spline A list with two elements; first element is the name of the time variable, 
+ #'               and number of knots plus 1 
+ #' @param priors A list of hyperparameters; theta, Omega, sigma_B, sigma_Z, beta (for tv). See details below.
+ #' @param ... to be passed to the \code{stan} function 
+ #' 
+ #' @details This is a wrapper function for fitting mixed effects models. 
+ #'          Cauchy distribution is assumed as the prior for theta (QR decomposed alpha), 
+ #'          half-Cauchy for sigma_B (standard deviations of var-cov of B), 
+ #'          half-Cauchy for sigma_Z (standard deviation of error),
+ #'          Cauchy for beta (time-varying degree of freedom parameters)
+ #'
+ #' @return Returns the output of the \code{stan} function 
+ #' @examples See the repository at https://github.com/ozgurasarstat/robjm-run                                              
 
  fit_ld <- function(fixed, 
                     random, 
@@ -7,15 +30,6 @@
                     spline, 
                     priors = list(), 
                     ...){
-
-   ## fixed: two-sided formula for fixed effects
-   ## random: one-sided formula for random effects
-   ## data: data frame
-   ## id: name of the id column
-   ## model: model identifier, "nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod3", "t_t_tv", "nor_t_tv"
-   ## spline: a list: name of the time variable, and number of knots plus 1
-   ## priors: prior hyperparameters, order = theta, omega, sigma_Bstar, sigma_B, beta (for tv)
-   ## ... to be passed to stan() function
 
    ## be sure that distribution specifications are correct
    if(!(model %in% c("nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod3", "t_t_tv", "nor_t_tv"))){
