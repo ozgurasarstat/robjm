@@ -1,3 +1,39 @@
+#' @title Bayesian inference for joint models
+#' 
+#' @description Fits jont models with Normal and non-Normal distributions
+#' 
+#' @param fixed_long A two-sided formula for fixed effects of longitudinal sub-model
+#' @param random_long A one-sided formula for random effects of longitudinal sub-model
+#' @param fixed_surv A two-sided formula for survival time, event indicator and 
+#'                  baseline covariates to be included in survival sub-model, 
+#'                  e.g. \code{cbind(Time, death) ~ x}
+#' @param data_long A data frame that includes the longitudinal data
+#' @param data_surv A data frame that includes the survival data
+#' @param id_long A character string that indicates the column name for the id column in \code{data_long}
+#' @param id_surv A character string that indicates the column name for the id column in \code{data_surv}
+#' @param model A character string for model identification; options are: 
+#'             "nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod3" (not yet available), 
+#'             "t_t_tv", "nor_t_tv" (not yet available)
+#' @param timeVar A character string for the column name of the time variable in \code{data_long}
+#' @param bh_nknots A numeric value for the number of knots for baseline hazard b-spline specification; default is 2
+#' @param spline_tv A list with two elements; first element is the name of the time variable, 
+#'               and number of knots
+#' @param Q A numeric value for the number of quadratures; default is 15              
+#' @param priors A list of hyperparameters; theta, Omega, sigma_B, sigma_Z, beta (for tv), zeta, omega, eta. 
+#'              See details below.
+#' @param ... to be passed to the \code{stan} function 
+#' 
+#' @details This is a wrapper function for fitting mixed effects models. 
+#'          Cauchy distribution is assumed as the prior for theta (QR decomposed alpha), 
+#'          half-Cauchy for sigma_B (standard deviations of var-cov of B), 
+#'          half-Cauchy for sigma_Z (standard deviation of error),
+#'          Cauchy for beta (time-varying degree of freedom parameters),
+#'          Cauchy for zeta (baseline hazard spline coefficients),
+#'          Cauchy for omega (survival sub-model regression coefficients),
+#'          Cauchy for eta (association parameter)
+#'
+#' @return Returns the output of the \code{stan} function 
+#' @examples For examples, see the repository at https://github.com/ozgurasarstat/robjm-run                                              
 
 fit_jm <- function(fixed_long, 
                    random_long, 
@@ -8,7 +44,7 @@ fit_jm <- function(fixed_long,
                    id_surv,
                    model, 
                    timeVar,
-                   bh_nknots, #number of knots for baseline hazard 
+                   bh_nknots = 2, #number of knots for baseline hazard 
                    spline_tv, #spline for tv dof - same in fit_ld
                    Q = 15, 
                    priors = list(),
@@ -216,7 +252,7 @@ fit_jm <- function(fixed_long,
 
   
   if(model == "t_t_tv"){
-    a <- splines::ns(data_long[, spline_tv[[1]]], df = spline_tv[[2]])
+    a <- splines::ns(data_long[, spline_tv[[1]]], df = (spline_tv[[2]] + 1))
     ncol_a <- ncol(a)
     attributes(a) <- NULL
     a <- matrix(a, ncol = ncol_a)

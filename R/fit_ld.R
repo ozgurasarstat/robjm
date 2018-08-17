@@ -9,7 +9,7 @@
  #' @param model A character string for model identification; options are: 
  #'             "nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod3", "t_t_tv", "nor_t_tv"
  #' @param spline A list with two elements; first element is the name of the time variable, 
- #'               and number of knots plus 1 
+ #'               and number of knots
  #' @param priors A list of hyperparameters; theta, Omega, sigma_B, sigma_Z, beta (for tv). See details below.
  #' @param ... to be passed to the \code{stan} function 
  #' 
@@ -20,7 +20,7 @@
  #'          Cauchy for beta (time-varying degree of freedom parameters)
  #'
  #' @return Returns the output of the \code{stan} function 
- #' @examples See the repository at https://github.com/ozgurasarstat/robjm-run                                              
+ #' @examples For examples, see the repository at https://github.com/ozgurasarstat/robjm-run                                              
 
  fit_ld <- function(fixed, 
                     random, 
@@ -127,7 +127,7 @@
    ## time-varying d.o.f for Z
 
    if(model %in% c("t_t_tv", "nor_t_tv")){
-     a <- splines::ns(data[, spline[[1]]], df = spline[[2]])
+     a <- splines::ns(data[, spline[[1]]], df = (spline[[2]] + 1))
      ncol_a <- ncol(a)
      attributes(a) <- NULL
      a <- matrix(a, ncol = ncol_a)

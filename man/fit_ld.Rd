@@ -19,7 +19,7 @@ fit_ld(fixed, random, data, id, model, spline, priors = list(), ...)
 "nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod3", "t_t_tv", "nor_t_tv"}
 
 \item{spline}{A list with two elements; first element is the name of the time variable, 
-and number of knots plus 1}
+and number of knots}
 
 \item{priors}{A list of hyperparameters; theta, Omega, sigma_B, sigma_Z, beta (for tv). See details below.}
 
@@ -39,5 +39,5 @@ This is a wrapper function for fitting mixed effects models.
          Cauchy for beta (time-varying degree of freedom parameters)
 }
 \examples{
-See the repository at https://github.com/ozgurasarstat/robjm-run                                              
+For examples, see the repository at https://github.com/ozgurasarstat/robjm-run                                              
 }
