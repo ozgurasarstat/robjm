@@ -35,7 +35,7 @@
        }
      }
    }
-   if(model != "t_t_tv" % length(priors) != 4){
+   if(model != "t_t_tv" & length(priors) != 4){
      priors_full <- list(theta = 5, 
                          Omega = 2, 
                          sigma_B = 5, 
