@@ -8,9 +8,5 @@ library(robjm)
 
 TO DO: 
 
-add priors and Q into control list
-
-baseline hazard is divided into 2 as piecewise constants
-
-prediction functions
+- add prediction functions for survival probabilities
 
