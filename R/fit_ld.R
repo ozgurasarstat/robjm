@@ -12,14 +12,14 @@
    ## random: one-sided formula for random effects
    ## data: data frame
    ## id: name of the id column
-   ## model: model identifier, "nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "t_t_tv"
+   ## model: model identifier, "nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod3", "t_t_tv"
    ## spline: a list: name of the time variable, and number of knots plus 1
    ## priors: prior hyperparameters, order = theta, omega, sigma_Bstar, sigma_B, beta (for tv)
    ## ... to be passed to stan() function
 
    ## be sure that distribution specifications are correct
-   if(!(model %in% c("nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "t_t_tv"))){
-     stop("Model should be one of the followings: nor_nor, t_t_mod1, t_t_mod2, t_t_mod3, t_t_tv")
+   if(!(model %in% c("nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod3", "t_t_tv"))){
+     stop("Model should be one of the followings: nor_nor, t_t_mod1, t_t_mod2, t_t_mod3, nor_t_mod3, t_t_tv")
    }
 
    ## re-organise priors
@@ -80,7 +80,7 @@
    ## t-t models - time invariant d.o.f.
 
    # prepare data-set first, common to t_t_mod1, t_t_mod2, t_t_mod3
-   if(model %in% c("t_t_mod1", "t_t_mod2", "t_t_mod3")){
+   if(model %in% c("t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod3")){
      dat_t_t <- list(ntot = nrow(data),
                      id = data[, id],
                      y = y,
@@ -106,6 +106,10 @@
      res <- stan(model_code = t_t_ld_mod3, data = dat_t_t, ...)
    }
 
+   if(model == "nor_t_mod3"){
+     res <- stan(model_code = nor_t_ld_mod3, data = dat_t_t, ...)
+   }
+   
    ## time-varying d.o.f for Z
 
    if(model == "t_t_tv"){
