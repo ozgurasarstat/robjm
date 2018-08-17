@@ -132,7 +132,7 @@ fit_jm <- function(fixed_long,
   
   ## baseline hazard - piecewise constant with one know a.t.m. 
   #median_S <- median(S)
-  knots <- quantiles(S_uncensored, seq(0, 1, bh_nknots)[-c(1, (bh_nknots + 2))])
+  knots <- quantile(S_uncensored, seq(0, 1, bh_nknots)[-c(1, (bh_nknots + 2))])
   e <- bs(S, knots = knots) #cbind(ifelse(S < median_S, 1, 0), ifelse(S >= median_S, 1, 0))
   ncol_e <- ncol(e)
   attributes(e) <- NULL
