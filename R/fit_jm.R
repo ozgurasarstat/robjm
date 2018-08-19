@@ -15,6 +15,8 @@
 #'             "nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod3" (not yet available), 
 #'             "t_t_tv", "nor_t_tv" (not yet available)
 #' @param timeVar A character string for the column name of the time variable in \code{data_long}
+#' @param bh A character string for baseline hazard specification, "weibull" for Weibull, 
+#'           "spline" for b-spline, "piecewise" for piecewise constant
 #' @param bh_nknots A numeric value for the number of knots for baseline hazard b-spline specification; default is 2
 #' @param spline_tv A list with two elements; first element is the name of the time variable, 
 #'               and number of knots
@@ -57,7 +59,7 @@ fit_jm <- function(fixed_long,
   }
 
   ## organise priors
-  if(bh != "weibull"){
+  if(bh %in% c("spline", "piecewise")){
     if(model == "t_t_tv" & length(priors) != 8){
       priors_full <- list(alpha = 5, 
                           Omega = 2, 
@@ -162,23 +164,34 @@ fit_jm <- function(fixed_long,
   mf_surv <- model.frame(fixed_surv, data_surv)
   S <- mf_surv[, 1][, 1]
   E <- mf_surv[, 1][, 2]
-  S_uncensored <- S[E == 1]
   
   ## calculate times for hazard function for quadrature approx
   t_quad <- 0.5 * rep(S, each = Q) * (1 + rep(pt, ngroup))
   
-  if(bh != "weibull"){
-    ## baseline hazard  
-    #median_S <- median(S)
+  ## creat e and e_quad matrices
+  if(bh %in% c("spline", "piecewise")){
+
+    S_uncensored <- S[E == 1]
     knots <- quantile(S_uncensored, seq(0, 1, bh_nknots)[-c(1, (bh_nknots + 2))])
-    e <- bs(S, knots = knots) #cbind(ifelse(S < median_S, 1, 0), ifelse(S >= median_S, 1, 0))
-    ncol_e <- ncol(e)
-    attributes(e) <- NULL
-    e <- matrix(e, ncol = ncol_e)
     
-    e_quad <- bs(t_quad, knots = knots)#cbind(ifelse(t_quad < median_S, 1, 0), ifelse(t_quad >= median_S, 1, 0))
-    attributes(e_quad) <- NULL
-    e_quad <- matrix(e_quad, ncol = ncol_e)    
+    if(bh == "piecewise"){
+      e <- pw_mat(S, knots)
+      ncol_e <- ncol(e)
+    }else if(bh == "spline"){
+      e <- bs(S, knots = knots)
+      ncol_e <- ncol(e)
+      attributes(e) <- NULL
+      e <- matrix(e, ncol = ncol_e) 
+    }
+    
+   if(bh == "piecewise"){
+     e_quad <- pw_mat(t_quad, knots)
+   }else if(bh == "spline"){
+     e_quad <- bs(t_quad, knots = knots)
+     attributes(e_quad) <- NULL
+     e_quad <- matrix(e_quad, ncol = ncol_e) 
+   }  
+    
   }
 
   ## fixed effects for survival sub-model
@@ -210,7 +223,7 @@ fit_jm <- function(fixed_long,
   wt_quad <- rep(wt, ngroup)
   
   ## prior hyperparameters
-  if(bh != "weibull"){
+  if(bh %in% c("spline", "piecewise")){
     if(model != "t_t_tv"){
       priors_long <- unlist(priors)[1:4]
     }else{
@@ -227,7 +240,7 @@ fit_jm <- function(fixed_long,
   }
   
   if(model == "nor_nor"){
-    if(bh != "weibull"){
+    if(bh %in% c("spline", "piecewise")){
       data_nor_nor <- list(ntot = ntot,
                            id = l_id, 
                            y = y, 
@@ -291,33 +304,34 @@ fit_jm <- function(fixed_long,
   }
   
   if(model %in% c("t_t_mod1", "t_t_mod2", "t_t_mod3")){
+  if(bh %in% c("spline", "piecewise")){
     data_t_t <- list(ntot = ntot,
-                         id = l_id, 
-                         y = y, 
-                         p = p,
-                         q = q,
-                         ngroup = ngroup, 
-                         x = x, 
-                         d = d,
-                         priors_long = priors_long,
-                         priors_surv = priors_surv,
-                         Q = Q,
-                         ntot_quad = ntot_quad,
-                         S = S,
-                         E = E,
-                         ncol_e = ncol_e, 
-                         e = e, 
-                         e_quad = e_quad,
-                         ncol_c = ncol_c, 
-                         c = c, 
-                         c_quad = c_quad,
-                         x_T = x_T,
-                         x_quad = x_quad,
-                         d_T = d_T,
-                         d_quad = d_quad,
-                         wt_quad = wt_quad
-                     )
-
+                     id = l_id, 
+                     y = y, 
+                     p = p,
+                     q = q,
+                     ngroup = ngroup, 
+                     x = x, 
+                     d = d,
+                     priors_long = priors_long,
+                     priors_surv = priors_surv,
+                     Q = Q,
+                     ntot_quad = ntot_quad,
+                     S = S,
+                     E = E,
+                     ncol_e = ncol_e, 
+                     e = e, 
+                     e_quad = e_quad,
+                     ncol_c = ncol_c, 
+                     c = c, 
+                     c_quad = c_quad,
+                     x_T = x_T,
+                     x_quad = x_quad,
+                     d_T = d_T,
+                     d_quad = d_quad,
+                     wt_quad = wt_quad
+    )
+    
     if(model == "t_t_mod1"){
       res <- stan(model_code = t_t_jm_mod1, data = data_t_t, ...)
     } 
@@ -327,6 +341,45 @@ fit_jm <- function(fixed_long,
     if(model == "t_t_mod3"){
       res <- stan(model_code = t_t_jm_mod3, data = data_t_t, ...)
     }
+  }else if(bh == "weibull"){
+    data_t_t <- list(ntot = ntot,
+                     id = l_id, 
+                     y = y, 
+                     p = p,
+                     q = q,
+                     ngroup = ngroup, 
+                     x = x, 
+                     d = d,
+                     priors_long = priors_long,
+                     priors_surv = priors_surv,
+                     Q = Q,
+                     ntot_quad = ntot_quad,
+                     S = S,
+                     E = E,
+                     #ncol_e = ncol_e, 
+                     #e = e, 
+                     #e_quad = e_quad,
+                     ncol_c = ncol_c, 
+                     c = c, 
+                     c_quad = c_quad,
+                     x_T = x_T,
+                     x_quad = x_quad,
+                     d_T = d_T,
+                     d_quad = d_quad,
+                     wt_quad = wt_quad,
+                     t_quad = t_quad
+                     )
+    
+    if(model == "t_t_mod1"){
+      res <- stan(model_code = t_t_jm_mod1_weibull, data = data_t_t, ...)
+    } 
+    if(model == "t_t_mod2"){
+      res <- stan(model_code =t_t_jm_mod2_weibull, data = data_t_t, ...)
+    }
+    if(model == "t_t_mod3"){
+      res <- stan(model_code = t_t_jm_mod3_weibull, data = data_t_t, ...)
+    }
+  }
     
  }
 
@@ -338,6 +391,7 @@ fit_jm <- function(fixed_long,
     a <- matrix(a, ncol = ncol_a)
     s <- ncol_a
     
+  if(bh %in% c("spline", "piecewise")){
     data_t_t_tv <- list(ntot = ntot,
                         id = l_id, 
                         y = y, 
@@ -368,6 +422,41 @@ fit_jm <- function(fixed_long,
     )
     
     res <- stan(model_code = t_t_tv_jm, data = data_t_t_tv, ...)
+    
+  }else if(bh == "weibull"){
+    data_t_t_tv <- list(ntot = ntot,
+                        id = l_id, 
+                        y = y, 
+                        p = p,
+                        q = q,
+                        ngroup = ngroup, 
+                        x = x, 
+                        d = d,
+                        priors_long = priors_long,
+                        priors_surv = priors_surv,
+                        Q = Q,
+                        ntot_quad = ntot_quad,
+                        S = S,
+                        E = E,
+                        #ncol_e = ncol_e, 
+                        #e = e, 
+                        #e_quad = e_quad,
+                        ncol_c = ncol_c, 
+                        c = c, 
+                        c_quad = c_quad,
+                        x_T = x_T,
+                        x_quad = x_quad,
+                        d_T = d_T,
+                        d_quad = d_quad,
+                        wt_quad = wt_quad,
+                        t_quad = t_quad,
+                        s = s,
+                        a = a
+                        )
+    
+    res <- stan(model_code = t_t_tv_jm_weibull, data = data_t_t_tv, ...)
+    
+  }
     
   }
 
