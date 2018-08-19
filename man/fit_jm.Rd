@@ -34,7 +34,9 @@ e.g. \code{cbind(Time, death) ~ x}}
 \item{bh}{A character string for baseline hazard specification, "weibull" for Weibull, 
 "spline" for b-spline, "piecewise" for piecewise constant}
 
-\item{bh_nknots}{A numeric value for the number of knots for baseline hazard b-spline specification; default is 2}
+\item{bh_nknots}{A numeric value for the number of knots for 
+b-spline and piecewie constant specifications for baseline hazard; default is 2; 
+not used for \code{bh = "weibull"}}
 
 \item{spline_tv}{A list with two elements; first element is the name of the time variable, 
 and number of knots}
