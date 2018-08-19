@@ -44,6 +44,7 @@ fit_jm <- function(fixed_long,
                    id_surv,
                    model, 
                    timeVar,
+                   bh = "weibull",
                    bh_nknots = 2, #number of knots for baseline hazard 
                    spline_tv, #spline for tv dof - same in fit_ld
                    Q = 15, 
@@ -54,38 +55,74 @@ fit_jm <- function(fixed_long,
   if(!(model %in% c("nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "t_t_tv"))){
     stop("Model should be one of the followings: nor_nor, t_t_mod1, t_t_mod2, t_t_mod3, t_t_tv")
   }
-  
+
   ## organise priors
-  if(model == "t_t_tv" & length(priors) != 8){
-    priors_full <- list(alpha = 5, 
-                        Omega = 2, 
-                        sigma_B = 5, 
-                        sigma_Z = 5,
-                        beta = 4.6,
-                        zeta = 5,
-                        omega = 5,
-                        eta = 5)
-    for(i in 1:8){
-      if(!(names(priors_full)[i] %in% names(priors))){
-        priors[names(priors_full)[i]] <- priors_full[names(priors_full)[i]]
+  if(bh != "weibull"){
+    if(model == "t_t_tv" & length(priors) != 8){
+      priors_full <- list(alpha = 5, 
+                          Omega = 2, 
+                          sigma_B = 5, 
+                          sigma_Z = 5,
+                          beta = 4.6,
+                          zeta = 5,
+                          omega = 5,
+                          eta = 5)
+      for(i in 1:8){
+        if(!(names(priors_full)[i] %in% names(priors))){
+          priors[names(priors_full)[i]] <- priors_full[names(priors_full)[i]]
+        }
       }
     }
-  }
+    
+    if(model != "t_t_tv" & length(priors) != 7){
+      priors_full <- list(alpha = 5, 
+                          Omega = 2, 
+                          sigma_B = 5, 
+                          sigma_Z = 5,
+                          zeta = 5,
+                          omega = 5,
+                          eta = 5)
+      for(i in 1:7){
+        if(!(names(priors_full)[i] %in% names(priors))){
+          priors[names(priors_full)[i]] <- priors_full[names(priors_full)[i]]
+        }
+      }
+    }  
+  }else if(bh == "weibull"){
+      if(model == "t_t_tv" & length(priors) != 9){
+        priors_full <- list(alpha = 5, 
+                            Omega = 2, 
+                            sigma_B = 5, 
+                            sigma_Z = 5,
+                            beta = 4.6,
+                            log_lambda = 5,
+                            log_nu = 5,
+                            omega = 5,
+                            eta = 5)
+        for(i in 1:9){
+          if(!(names(priors_full)[i] %in% names(priors))){
+            priors[names(priors_full)[i]] <- priors_full[names(priors_full)[i]]
+          }
+        }
+      }
+      
+      if(model != "t_t_tv" & length(priors) != 8){
+        priors_full <- list(alpha = 5, 
+                            Omega = 2, 
+                            sigma_B = 5, 
+                            sigma_Z = 5,
+                            log_lambda = 5,
+                            log_nu = 5,
+                            omega = 5,
+                            eta = 5)
+        for(i in 1:8){
+          if(!(names(priors_full)[i] %in% names(priors))){
+            priors[names(priors_full)[i]] <- priors_full[names(priors_full)[i]]
+          }
+        }
+      }  
+    }
   
-  if(model != "t_t_tv" & length(priors) != 7){
-    priors_full <- list(alpha = 5, 
-                        Omega = 2, 
-                        sigma_B = 5, 
-                        sigma_Z = 5,
-                        zeta = 5,
-                        omega = 5,
-                        eta = 5)
-    for(i in 1:7){
-      if(!(names(priors_full)[i] %in% names(priors))){
-        priors[names(priors_full)[i]] <- priors_full[names(priors_full)[i]]
-      }
-    }
-  }
   
   ## be sure that id is: 1, 2, 3, ...
   data_long[, id_long] <- rep(1:length(unique(data_long[, id_long])), as.numeric(table(data_long[, id_long])))
@@ -130,18 +167,20 @@ fit_jm <- function(fixed_long,
   ## calculate times for hazard function for quadrature approx
   t_quad <- 0.5 * rep(S, each = Q) * (1 + rep(pt, ngroup))
   
-  ## baseline hazard - piecewise constant with one know a.t.m. 
-  #median_S <- median(S)
-  knots <- quantile(S_uncensored, seq(0, 1, bh_nknots)[-c(1, (bh_nknots + 2))])
-  e <- bs(S, knots = knots) #cbind(ifelse(S < median_S, 1, 0), ifelse(S >= median_S, 1, 0))
-  ncol_e <- ncol(e)
-  attributes(e) <- NULL
-  e <- matrix(e, ncol = ncol_e)
-  
-  e_quad <- bs(t_quad, knots = knots)#cbind(ifelse(t_quad < median_S, 1, 0), ifelse(t_quad >= median_S, 1, 0))
-  attributes(e_quad) <- NULL
-  e_quad <- matrix(e_quad, ncol = ncol_e)
-  
+  if(bh != "weibull"){
+    ## baseline hazard  
+    #median_S <- median(S)
+    knots <- quantile(S_uncensored, seq(0, 1, bh_nknots)[-c(1, (bh_nknots + 2))])
+    e <- bs(S, knots = knots) #cbind(ifelse(S < median_S, 1, 0), ifelse(S >= median_S, 1, 0))
+    ncol_e <- ncol(e)
+    attributes(e) <- NULL
+    e <- matrix(e, ncol = ncol_e)
+    
+    e_quad <- bs(t_quad, knots = knots)#cbind(ifelse(t_quad < median_S, 1, 0), ifelse(t_quad >= median_S, 1, 0))
+    attributes(e_quad) <- NULL
+    e_quad <- matrix(e_quad, ncol = ncol_e)    
+  }
+
   ## fixed effects for survival sub-model
   c <- model.matrix(fixed_surv, data_surv)[, -1, drop = FALSE]
   ncol_c <- ncol(c)
@@ -171,42 +210,83 @@ fit_jm <- function(fixed_long,
   wt_quad <- rep(wt, ngroup)
   
   ## prior hyperparameters
-  if(model != "t_t_tv"){
-    priors_long <- unlist(priors)[1:4]
-  }else{
-    priors_long <- unlist(priors)[1:5]
+  if(bh != "weibull"){
+    if(model != "t_t_tv"){
+      priors_long <- unlist(priors)[1:4]
+    }else{
+      priors_long <- unlist(priors)[1:5]
+    }
+    priors_surv <- rev(unlist(priors))[1:4]
+  }else if(bh == "weibull"){
+    if(model != "t_t_tv"){
+      priors_long <- unlist(priors)[1:4]
+    }else{
+      priors_long <- unlist(priors)[1:5]
+    }
+    priors_surv <- rev(unlist(priors))[1:4]
   }
-  priors_surv <- rev(unlist(priors))[1:3]
   
   if(model == "nor_nor"){
-    data_nor_nor <- list(ntot = ntot,
-                        id = l_id, 
-                        y = y, 
-                        p = p,
-                        q = q,
-                        ngroup = ngroup, 
-                        x = x, 
-                        d = d,
-                        priors_long = priors_long,
-                        priors_surv = priors_surv,
-                        Q = Q,
-                        ntot_quad = ntot_quad,
-                        S = S,
-                        E = E,
-                        ncol_e = ncol_e, 
-                        e = e, 
-                        e_quad = e_quad,
-                        ncol_c = ncol_c, 
-                        c = c, 
-                        c_quad = c_quad,
-                        x_T = x_T,
-                        x_quad = x_quad,
-                        d_T = d_T,
-                        d_quad = d_quad,
-                        wt_quad = wt_quad
-                        )
-    
-    res <- stan(model_code = nor_nor_jm, data = data_nor_nor, ...)
+    if(bh != "weibull"){
+      data_nor_nor <- list(ntot = ntot,
+                           id = l_id, 
+                           y = y, 
+                           p = p,
+                           q = q,
+                           ngroup = ngroup, 
+                           x = x, 
+                           d = d,
+                           priors_long = priors_long,
+                           priors_surv = priors_surv,
+                           Q = Q,
+                           ntot_quad = ntot_quad,
+                           S = S,
+                           E = E,
+                           ncol_e = ncol_e, 
+                           e = e, 
+                           e_quad = e_quad,
+                           ncol_c = ncol_c, 
+                           c = c, 
+                           c_quad = c_quad,
+                           x_T = x_T,
+                           x_quad = x_quad,
+                           d_T = d_T,
+                           d_quad = d_quad,
+                           wt_quad = wt_quad
+                           )
+      res <- stan(model_code = nor_nor_jm, data = data_nor_nor, ...)
+      
+    }else if(bh == "weibull"){
+      data_nor_nor <- list(ntot = ntot,
+                           id = l_id, 
+                           y = y, 
+                           p = p,
+                           q = q,
+                           ngroup = ngroup, 
+                           x = x, 
+                           d = d,
+                           priors_long = priors_long,
+                           priors_surv = priors_surv,
+                           Q = Q,
+                           ntot_quad = ntot_quad,
+                           S = S,
+                           E = E,
+                           #ncol_e = ncol_e, 
+                           #e = e, 
+                           #e_quad = e_quad,
+                           ncol_c = ncol_c, 
+                           c = c, 
+                           c_quad = c_quad,
+                           x_T = x_T,
+                           x_quad = x_quad,
+                           d_T = d_T,
+                           d_quad = d_quad,
+                           wt_quad = wt_quad,
+                           t_quad = t_quad
+                           )
+      res <- stan(model_code = nor_nor_jm_weibull, data = data_nor_nor, ...)
+      
+    }
     
   }
   
