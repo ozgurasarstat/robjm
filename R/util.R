@@ -5,7 +5,7 @@
 #'
 pw_mat <- function(x, knots){
   
-  matrix(unlist(lapply(x, in_interval, knots = knots)), nrow = length(X), byrow = TRUE)
+  matrix(unlist(lapply(x, in_interval, knots = knots)), nrow = length(x), byrow = TRUE)
   
 }
 

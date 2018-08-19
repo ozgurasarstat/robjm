@@ -231,7 +231,7 @@ fit_jm <- function(fixed_long,
     }else{
       priors_long <- unlist(priors)[1:5]
     }
-    priors_surv <- rev(unlist(priors))[1:4]
+    priors_surv <- rev(unlist(priors))[1:3]
   }else if(bh == "weibull"){
     if(model != "t_t_tv"){
       priors_long <- unlist(priors)[1:4]
