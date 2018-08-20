@@ -12,8 +12,8 @@
 #' @param id_long A character string that indicates the column name for the id column in \code{data_long}
 #' @param id_surv A character string that indicates the column name for the id column in \code{data_surv}
 #' @param model A character string for model identification; options are: 
-#'             "nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod3" (not yet available), 
-#'             "t_t_tv", "nor_t_tv" (not yet available)
+#'             "nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod3",
+#'             "t_t_tv", 
 #' @param timeVar A character string for the column name of the time variable in \code{data_long}
 #' @param bh A character string for baseline hazard specification, "weibull" for Weibull, 
 #'           "spline" for b-spline, "piecewise" for piecewise constant
@@ -56,8 +56,8 @@ fit_jm <- function(fixed_long,
                    ...){
 
   ## be sure that distribution specifications are correct
-  if(!(model %in% c("nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "t_t_tv"))){
-    stop("Model should be one of the followings: nor_nor, t_t_mod1, t_t_mod2, t_t_mod3, t_t_tv")
+  if(!(model %in% c("nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod3", "t_t_tv"))){
+    stop("Model should be one of the followings: nor_nor, t_t_mod1, t_t_mod2, t_t_mod3, nor_t_mod3, t_t_tv")
   }
 
   ## organise priors
@@ -305,7 +305,7 @@ fit_jm <- function(fixed_long,
     
   }
   
-  if(model %in% c("t_t_mod1", "t_t_mod2", "t_t_mod3")){
+  if(model %in% c("t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod3")){
   if(bh %in% c("spline", "piecewise")){
     data_t_t <- list(ntot = ntot,
                      id = l_id, 
@@ -380,6 +380,9 @@ fit_jm <- function(fixed_long,
     }
     if(model == "t_t_mod3"){
       res <- stan(model_code = t_t_jm_mod3_weibull, data = data_t_t, ...)
+    }
+    if(model == "nor_t_mod3"){
+      res <- stan(model_code = nor_t_jm_mod3_weibull, data = data_t_t, ...)
     }
   }
     
