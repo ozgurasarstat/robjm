@@ -8,5 +8,9 @@ library(robjm)
 
 TO DO: 
 
+- separate alpha0
+
+- move zero matrix specification from transformed parameters to transformed data
+
 - add prediction functions for survival probabilities
 
