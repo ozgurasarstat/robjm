@@ -1,4 +1,4 @@
-t_t_tv_jm = "
+t_t_tv_jm_weibull = "
 
 data{
 //longitudinal sub-model data

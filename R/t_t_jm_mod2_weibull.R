@@ -1,4 +1,4 @@
-t_t_jm_mod2 = "
+t_t_jm_mod2_weibull = "
 
 data{
 

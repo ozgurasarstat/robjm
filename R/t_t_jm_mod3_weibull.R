@@ -1,4 +1,4 @@
-t_t_jm_mod3 = "
+t_t_jm_mod3_weibull = "
 
 data{
 //longitudinal sub-model data
@@ -145,8 +145,8 @@ target += lsd;
 
 generated quantities{
 real sigmasq;
-real log_lambda;
-real log_nu;
+real lambda;
+real nu;
 
 lambda = exp(log_lambda);
 nu = exp(log_nu);
