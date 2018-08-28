@@ -17,8 +17,8 @@ matrix[ntot, p] Q_star;
 matrix[p, p] R_star;
 matrix[p, p] R_star_inv;
 
-Q_star = qr_Q(x)[, 1:p] * sqrt(ntot - 1);
-R_star = qr_R(x)[1:p, ] / sqrt(ntot - 1);
+Q_star = qr_Q(x)[, 1:p] * sqrt(ntot - 1.0);
+R_star = qr_R(x)[1:p, ] / sqrt(ntot - 1.0);
 R_star_inv = inverse(R_star);
 }
 
