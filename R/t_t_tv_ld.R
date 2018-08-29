@@ -19,6 +19,7 @@ transformed data{
 matrix[ntot, p] Q_star;
 matrix[p, p] R_star;
 matrix[p, p] R_star_inv;
+vector[q] zero_Bstar = rep_vector(0, q);
 
 Q_star = qr_Q(x)[, 1:p] * sqrt(ntot - 1.0);
 R_star = qr_R(x)[1:p, ] / sqrt(ntot - 1.0);
@@ -44,7 +45,6 @@ vector[ntot] linpred;
 matrix[ngroup, q] B;
 matrix[ngroup * q, 1] B_mat;
 vector<lower = 0>[ntot] delta;
-vector[q] zero_Bstar = rep_vector(0, q);
 real<lower = 2, upper = 100> phi;
 real<lower = 2, upper = 100> delta0;
 

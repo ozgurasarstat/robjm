@@ -37,6 +37,10 @@ vector[ntot_quad] wt_quad; // extended quadrature weights to be used during Gaus
 
 }
 
+transformed data{
+vector[q] zero_B = rep_vector(0, q);
+}
+
 parameters{
 //longitudinal sub-model
 vector[p] alpha;              // fixed effects coefficients
@@ -55,7 +59,6 @@ transformed parameters{
 cov_matrix[q] Sigma; 
 vector[ntot] linpred;
 matrix[ngroup * q, 1] Bmat;
-vector[q] zero_B = rep_vector(0, q);
 
 vector[ngroup] lsd_expr1;
 vector[ngroup] lsd_expr1_spl;

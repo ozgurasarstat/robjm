@@ -36,6 +36,10 @@ vector[ntot_quad] wt_quad; // extended quadrature weights to be used during Gaus
 
 }
 
+transformed data{
+vector[q] zero_B = rep_vector(0, q);
+}
+
 parameters{
 
 //longitudinal sub-model
@@ -61,7 +65,6 @@ cov_matrix[q] Sigma;
 vector[ntot] linpred;
 matrix[ngroup, q] B;         
 matrix[ngroup * q, 1] Bmat;
-vector[q] zero_B = rep_vector(0, q);
 real<lower = 2, upper = 100> phi;
 real<lower = 2, upper = 100> delta;
 

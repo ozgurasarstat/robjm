@@ -16,6 +16,7 @@ transformed data{
 matrix[ntot, p] Q_star;
 matrix[p, p] R_star;
 matrix[p, p] R_star_inv;
+vector[q] zero_B = rep_vector(0, q);
 
 Q_star = qr_Q(x)[, 1:p] * sqrt(ntot - 1.0);
 R_star = qr_R(x)[1:p, ] / sqrt(ntot - 1.0);
@@ -34,7 +35,6 @@ transformed parameters{
 cov_matrix[q] Sigma;
 vector[ntot] linpred;
 matrix[ngroup * q, 1] Bmat;
-vector[q] zero_B = rep_vector(0, q);
 
 Bmat = to_matrix(B', ngroup * q, 1);
 
