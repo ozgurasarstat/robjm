@@ -50,7 +50,7 @@ fit_jm <- function(fixed_long,
                    timeVar,
                    bh = "weibull",
                    bh_nknots = 2, #number of knots for baseline hazard 
-                   spline_tv, #spline for tv dof - same in fit_ld
+                   spline_tv = list("time", 2), #spline for tv dof - same in fit_ld
                    Q = 15, 
                    priors = list(),
                    ...){
@@ -464,7 +464,24 @@ fit_jm <- function(fixed_long,
   }
     
   }
-
-  return(res)  
+  
+  out <- list(fixed_long = fixed_long, 
+              random_long = random_long, 
+              fixed_surv = fixed_surv,
+              data_long = data_long, 
+              data_surv = data_surv, 
+              id_long = id_long, 
+              id_surv = id_surv,
+              model = model, 
+              timeVar = timeVar,
+              bh = bh,
+              bh_nknots = bh_nknots, 
+              spline_tv = spline_tv, 
+              Q = Q, 
+              priors = priors,
+              res = res
+              )
+              
+  return(out)  
   
 }
