@@ -28,3 +28,4 @@ in_interval <- function(x, knots){
   out
   
 }
+
