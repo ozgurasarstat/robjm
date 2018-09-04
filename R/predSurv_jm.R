@@ -209,4 +209,5 @@ predSurv_jm <- function(object, newdata, l, h, inc, ...){
   out <- do.call(rbind, out)
   colnames(out) <- c("id", "time", "2.5%", "mean", "mean", "97.5%")
   return(out)
+  
 }
