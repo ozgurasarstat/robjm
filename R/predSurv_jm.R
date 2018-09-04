@@ -114,7 +114,7 @@ predSurv_jm <- function(object, newdata, ...){
                        d_quad = d_quad,
                        wt_quad = wt_quad
                        )
-  B_sampled <- matrix(0, ncol = M, nrow = ngroup)
+  B_sampled <- list()
   
   for(i in 1:M){
     data_nor_nor$alpha   <- alpha[i, , drop = FALSE]
@@ -130,10 +130,9 @@ predSurv_jm <- function(object, newdata, ...){
                 iter = 1, 
                 chains = 1,
                 warmup = 0,
-                algorithm="Fixed_param",
                 controls = list(adapt_delta = 0.999, max_treedepth = 15)
                 )
-    B_sampled[, i] <- matrix(extract(res)$B, ncol = 1)
+    B_sampled[[i]] <- matrix(extract(res)$B, ncol = q, byrow = T)
     
   }
   
