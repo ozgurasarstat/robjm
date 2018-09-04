@@ -14,22 +14,23 @@ predSurv_jm <- function(object, newdata, ...){
   ###### normal-normal model with Weibull baseline hazard
   
   ## extract the chains
-  alpha <- extract(object$res)$alpha
+  alpha      <- extract(object$res)$alpha
   Sigma_long <- extract(object$res)$Sigma
-  M <- nrow(alpha)
-  Sigma <- lapply(1:M, function(i) Sigma_long[i, ,])
-  sigma_Z <- matrix(extract(object$res)$sigma_Z)
-  lambda <- matrix(extract(object$res)$lambda)
-  nu <- matrix(extract(object$res)$nu)
-  omega <- extract(object$res)$omega
-  delta <- matrix(extract(object$res)$delta)
+  M          <- nrow(alpha)
+  Sigma      <- lapply(1:M, function(i) Sigma_long[i, ,])
+  sigma_Z    <- matrix(extract(object$res)$sigma_Z)
+  log_lambda <- matrix(extract(object$res)$log_lambda)
+  log_nu     <- matrix(extract(object$res)$log_nu)
+  omega      <- extract(object$res)$omega
+  eta        <- matrix(extract(object$res)$eta)
   
   ## create covariate matrices
   id_long <- object$id_long
   id_surv <- object$id_surv
   
   ngroup <- length(unique(newdata[, id_long]))
-  newdata[, id_long] <- rep(1:ngroup, as.numeric(table(newdata[, id_long])))
+  #nobs   <- as.numeric(table(newdata[, id_long]))
+  #newdata[, id_long] <- rep(1:ngroup, nobs)
   
   data_surv <- newdata[!duplicated(newdata[, id_long]), ]
   
@@ -37,7 +38,7 @@ predSurv_jm <- function(object, newdata, ...){
   s_id <- data_surv[, id_surv]
   
   x <- model.matrix(object$fixed_long, newdata)
-  y <- model.frame(object$fixed_long, newdata)[, 1, drop = FALSE]
+  y <- model.frame(object$fixed_long, newdata)[, 1]
   
   dmat <- model.matrix(object$random_long, newdata)
   id_dmat <- data.frame(l_id, dmat)
@@ -51,7 +52,7 @@ predSurv_jm <- function(object, newdata, ...){
   q <- ncol(id_dmat) - 1
   
   ## extract survival times and event indicator
-  S <- model.frame(object$fixed_surv, data_surv)[, 1][, 1, drop = FALSE]
+  S <- model.frame(object$fixed_surv, data_surv)[, 1][, 1]
   
   ## Gauss - Legendre weights and abscissas
   Q <- object$Q
@@ -117,21 +118,22 @@ predSurv_jm <- function(object, newdata, ...){
   B_sampled <- list()
   
   for(i in 1:M){
-    data_nor_nor$alpha   <- alpha[i, , drop = FALSE]
-    data_nor_nor$Sigma   <- Sigma[[i]]
-    data_nor_nor$sigma_Z <- sigma_Z[i, , drop = FALSE]
-    data_nor_nor$lambda  <- lambda[i, , drop = FALSE]
-    data_nor_nor$nu      <- nu[i, , drop = FALSE]
-    data_nor_nor$omega   <- omega[i, , drop = FALSE]
-    data_nor_nor$delta   <- delta[i, , drop = FALSE]
+    data_nor_nor$alpha      <- alpha[i, ]
+    data_nor_nor$Sigma      <- Sigma[[i]]
+    data_nor_nor$sigma_Z    <- sigma_Z[i, ]
+    data_nor_nor$log_lambda <- log_lambda[i, ]
+    data_nor_nor$log_nu     <- log_nu[i, ]
+    data_nor_nor$omega      <- omega[i, ]
+    data_nor_nor$eta        <- eta[i, ]
     
     res <- stan(model_code = new_rand_eff_nor_nor_jm_weibull, 
                 data = data_nor_nor, 
                 iter = 1, 
                 chains = 1,
                 warmup = 0,
-                controls = list(adapt_delta = 0.999, max_treedepth = 15)
+                control = list(adapt_delta = 0.999, max_treedepth = 15)
                 )
+    
     B_sampled[[i]] <- matrix(extract(res)$B, ncol = q, byrow = T)
     
   }
