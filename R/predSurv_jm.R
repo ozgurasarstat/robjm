@@ -12,6 +12,9 @@ predSurv_jm <- function(object, newdata, l, h, inc, model, ...){
   ## first predict the random effects for the new subjects
   ##
   
+  model <- object$model
+  bh    <- object$bh
+  
   ###### normal-normal model with Weibull baseline hazard
   
   ## extract the chains
