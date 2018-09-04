@@ -6,7 +6,7 @@
 #' @param newdata 
 #' 
 
-predSurv_jm <- function(object, newdata, l, h, inc, ...){
+predSurv_jm <- function(object, newdata, l, h, inc, model, ...){
 
   ##
   ## first predict the random effects for the new subjects
@@ -24,6 +24,11 @@ predSurv_jm <- function(object, newdata, l, h, inc, ...){
   log_nu     <- matrix(extract(object$res)$log_nu)
   omega      <- extract(object$res)$omega
   eta        <- matrix(extract(object$res)$eta)
+  
+  if(model == "t_t_mod3"){
+    phi   <- matrix(extract(object$res)$phi)
+    delta <- matrix(extract(object$res)$delta)
+  }
   
   ## create covariate matrices
   id_long <- object$id_long
@@ -96,47 +101,96 @@ predSurv_jm <- function(object, newdata, l, h, inc, ...){
   ## extend the weights for quadrature approx.
   wt_quad <- rep(wt, ngroup)
   
-  data_nor_nor <- list(ntot = ntot,
-                       id = l_id, 
-                       y = y, 
-                       p = p,
-                       q = q,
-                       ngroup = ngroup, 
-                       x = x, 
-                       d = d,
-                       Q = Q,
-                       ntot_quad = ntot_quad,
-                       S = S,
-                       ncol_c = ncol_c, 
-                       c = c, 
-                       c_quad = c_quad,
-                       x_T = x_T,
-                       x_quad = x_quad,
-                       d_T = d_T,
-                       d_quad = d_quad,
-                       wt_quad = wt_quad
-                       )
-  B_sampled <- list()
+  if(model == "nor_nor" & bh = "weibull"){
+    data_nor_nor <- list(ntot = ntot,
+                         id = l_id, 
+                         y = y, 
+                         p = p,
+                         q = q,
+                         ngroup = ngroup, 
+                         x = x, 
+                         d = d,
+                         Q = Q,
+                         ntot_quad = ntot_quad,
+                         S = S,
+                         ncol_c = ncol_c, 
+                         c = c, 
+                         c_quad = c_quad,
+                         x_T = x_T,
+                         x_quad = x_quad,
+                         d_T = d_T,
+                         d_quad = d_quad,
+                         wt_quad = wt_quad
+    )
+    B_sampled <- list()
+    
+    for(i in 1:M){
+      data_nor_nor$alpha      <- as.array(alpha[i, ])
+      data_nor_nor$Sigma      <- Sigma[[i]]
+      data_nor_nor$sigma_Z    <- sigma_Z[i, ]
+      data_nor_nor$log_lambda <- log_lambda[i, ]
+      data_nor_nor$log_nu     <- log_nu[i, ]
+      data_nor_nor$omega      <- as.array(omega[i, ])
+      data_nor_nor$eta        <- eta[i, ]
+      
+      res <- stan(model_code = new_rand_eff_nor_nor_jm_weibull, 
+                  data = data_nor_nor, 
+                  iter = 1, 
+                  chains = 1,
+                  warmup = 0,
+                  control = list(adapt_delta = 0.9999, max_treedepth = 15)
+      )
+      
+      B_sampled[[i]] <- matrix(extract(res)$B, ncol = q, byrow = T)
+      
+    }  
+  }
   
-  for(i in 1:M){
-    data_nor_nor$alpha      <- as.array(alpha[i, ])
-    data_nor_nor$Sigma      <- Sigma[[i]]
-    data_nor_nor$sigma_Z    <- sigma_Z[i, ]
-    data_nor_nor$log_lambda <- log_lambda[i, ]
-    data_nor_nor$log_nu     <- log_nu[i, ]
-    data_nor_nor$omega      <- as.array(omega[i, ])
-    data_nor_nor$eta        <- eta[i, ]
+  if(model == "t_t_mod3" & bh = "weibull"){
+    data_t_t_mod3 <- list(ntot = ntot,
+                         id = l_id, 
+                         y = y, 
+                         p = p,
+                         q = q,
+                         ngroup = ngroup, 
+                         x = x, 
+                         d = d,
+                         Q = Q,
+                         ntot_quad = ntot_quad,
+                         S = S,
+                         ncol_c = ncol_c, 
+                         c = c, 
+                         c_quad = c_quad,
+                         x_T = x_T,
+                         x_quad = x_quad,
+                         d_T = d_T,
+                         d_quad = d_quad,
+                         wt_quad = wt_quad
+                         )
+    B_sampled <- list()
     
-    res <- stan(model_code = new_rand_eff_nor_nor_jm_weibull, 
-                data = data_nor_nor, 
-                iter = 1, 
-                chains = 1,
-                warmup = 0,
-                control = list(adapt_delta = 0.9999, max_treedepth = 15)
-                )
-    
-    B_sampled[[i]] <- matrix(extract(res)$B, ncol = q, byrow = T)
-    
+    for(i in 1:M){
+      data_t_t_mod3$alpha      <- as.array(alpha[i, ])
+      data_t_t_mod3$Sigma      <- Sigma[[i]]
+      data_t_t_mod3$sigma_Z    <- sigma_Z[i, ]
+      data_t_t_mod3$log_lambda <- log_lambda[i, ]
+      data_t_t_mod3$log_nu     <- log_nu[i, ]
+      data_t_t_mod3$omega      <- as.array(omega[i, ])
+      data_t_t_mod3$eta        <- eta[i, ]
+      data_t_t_mod3$phi        <- phi[i, ]
+      data_t_t_mod3$delta      <- delta[i, ]
+      
+      res <- stan(model_code = new_rand_eff_nor_nor_jm_weibull, 
+                  data = data_t_t_mod3, 
+                  iter = 1, 
+                  chains = 1,
+                  warmup = 0,
+                  control = list(adapt_delta = 0.9999, max_treedepth = 15)
+      )
+      
+      B_sampled[[i]] <- matrix(extract(res)$B, ncol = q, byrow = T)
+      
+    }
   }
   
   ##
