@@ -5,7 +5,8 @@
 #' @param object A fitted object from \code{fit_jm}
 #' @param newdata 
 #' 
-predSurv_jm <- function(object, newdata, ...){
+
+predSurv_jm <- function(object, newdata, l, h, inc, ...){
 
   ##
   ## first predict the random effects for the new subjects
@@ -29,7 +30,7 @@ predSurv_jm <- function(object, newdata, ...){
   id_surv <- object$id_surv
   
   ngroup <- length(unique(newdata[, id_long]))
-  #nobs   <- as.numeric(table(newdata[, id_long]))
+  nobs   <- as.numeric(table(newdata[, id_long]))
   #newdata[, id_long] <- rep(1:ngroup, nobs)
   
   data_surv <- newdata[!duplicated(newdata[, id_long]), ]
@@ -118,12 +119,12 @@ predSurv_jm <- function(object, newdata, ...){
   B_sampled <- list()
   
   for(i in 1:M){
-    data_nor_nor$alpha      <- alpha[i, ]
+    data_nor_nor$alpha      <- as.array(alpha[i, ])
     data_nor_nor$Sigma      <- Sigma[[i]]
     data_nor_nor$sigma_Z    <- sigma_Z[i, ]
     data_nor_nor$log_lambda <- log_lambda[i, ]
     data_nor_nor$log_nu     <- log_nu[i, ]
-    data_nor_nor$omega      <- omega[i, ]
+    data_nor_nor$omega      <- as.array(omega[i, ])
     data_nor_nor$eta        <- eta[i, ]
     
     res <- stan(model_code = new_rand_eff_nor_nor_jm_weibull, 
@@ -131,7 +132,7 @@ predSurv_jm <- function(object, newdata, ...){
                 iter = 1, 
                 chains = 1,
                 warmup = 0,
-                control = list(adapt_delta = 0.999, max_treedepth = 15)
+                control = list(adapt_delta = 0.9999, max_treedepth = 15)
                 )
     
     B_sampled[[i]] <- matrix(extract(res)$B, ncol = q, byrow = T)
@@ -142,4 +143,70 @@ predSurv_jm <- function(object, newdata, ...){
   ## the calculate the survival probabilities by pluggin in the ratio 
   ##
   
+  ft <- seq(l, h, inc)
+  n_ft <- length(ft)
+
+  x_base <- x[!duplicated(l_id), , drop = FALSE]
+  d_base <- dmat[!duplicated(l_id), , drop = FALSE]
+
+  ft_probs <- list()
+  
+  for(i in 1:ngroup){
+
+    x_i <- x[nobs_cumsum[i]:nobs_cumsum[i+1], , drop = FALSE]
+    d_i <- dmat[nobs_cumsum[i]:nobs_cumsum[i+1], , drop = FALSE]
+    c_i <- c[i, , drop = FALSE]
+    
+    ft_probs_i <- list()
+    ft_probs_i[[1]] <- rep(1, M)
+    for(j in 2:n_ft){
+      ft_probs_i_k <- c()
+      for(k in 1:M){
+        prob_upper <- surv_prob_calc(t = ft[j], 
+                                     x = x_base[i, , drop = FALSE], 
+                                     d = d_base[i, , drop = FALSE], 
+                                     c = c[i, , drop = FALSE],
+                                     timeVar = timeVar, 
+                                     log_lambda = log_lambda[k, ],
+                                     log_nu = log_nu[k, ],
+                                     omega = omega[k, ],
+                                     eta = eta[k, ],
+                                     alpha = alpha[k, ],
+                                     B = B_sampled[[k]][i, ],
+                                     wt = wt, 
+                                     pt = pt,
+                                     Q = Q,
+                                     bh = "weibull")
+        prob_lower <- surv_prob_calc(t = ft[1], 
+                                     x = x_base[i, , drop = FALSE], 
+                                     d = d_base[i, , drop = FALSE], 
+                                     c = c[i, , drop = FALSE],
+                                     timeVar = timeVar, 
+                                     log_lambda = log_lambda[k, ],
+                                     log_nu = log_nu[k, ],
+                                     omega = omega[k, ],
+                                     eta = eta[k, ],
+                                     alpha = alpha[k, ],
+                                     B = B_sampled[[k]][i, ],
+                                     wt = wt, 
+                                     pt = pt,
+                                     Q = Q,
+                                     bh = "weibull")
+        ft_probs_i_k <- c(ft_probs_i_k, prob_upper/prob_lower)
+      }
+      ft_probs_i[[j]] <- ft_probs_i_k
+    }
+        
+    ft_probs[[i]] <- ft_probs_i 
+    
+  }
+  
+  out <- list()
+  for(i in 1:ngroup){
+    out_i <- cbind(rep(s_id[i], n_ft), ft, do.call(rbind, lapply(ft_probs[[i]], prob_summary)))
+    out[[i]] <- out_i
+  }
+  out <- do.call(rbind, out)
+  colnames(out) <- c("id", "time", "2.5%", "mean", "mean", "97.5%")
+  return(out)
 }

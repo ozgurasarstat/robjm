@@ -68,7 +68,7 @@ linpred = x * alpha + to_vector(d * Bmat);
 //lsd_expr1_fix = c * omega; 
 //lsd_expr1_ystar = x_T * alpha + to_vector(d_T * Bmat);
 
-//lsd_expr1 = E .* (lsd_expr1_bh +lsd_expr1_fix + rep_vector(eta, ngroup) .* lsd_expr1_ystar);
+//lsd_expr1 = E .* (lsd_expr1_bh + lsd_expr1_fix + rep_vector(eta, ngroup) .* lsd_expr1_ystar);
 
 lsd_expr2_quad_bh = log_lambda + log_nu + (exp(log_nu) - 1) * log(t_quad); 
 lsd_expr2_quad_fix = c_quad * omega; 

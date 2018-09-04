@@ -9,5 +9,5 @@ library(robjm)
 TO DO: 
 
 - add prediction functions for survival probabilities
-
+- interaction for the design matrices for quadratures
 
