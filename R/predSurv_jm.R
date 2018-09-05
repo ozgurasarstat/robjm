@@ -9,13 +9,14 @@
 #' 
 
 predSurv_jm <- function(object, newdata, forecast = list(h = 5, n = 5), 
-                        B_control = list(iter = 500, warmup = 250, chains = 1),
+                        B_control = list(iter = 500, warmup = 250, chains = 1, 
+                                         adapt_delta = 0.8, max_treedepth = 10),
                         ...){
 
   ## be sure that B_control has 3 elements
-  if(length(B_control) < 3){
-    B_control_f <- list(iter = 500, warmup = 250, chains = 1)
-    for(i in 1:3){
+  if(length(B_control) < 5){
+    B_control_f <- list(iter = 500, warmup = 250, chains = 1, adapt_delta = 0.8, max_treedepth = 10)
+    for(i in 1:5){
       if(!(names(B_control_f)[i] %in% names(B_control))){
         B_control[names(B_control_f)[i]] <- B_control_f[i]
       }
@@ -155,7 +156,10 @@ predSurv_jm <- function(object, newdata, forecast = list(h = 5, n = 5),
                         data = data_nor_nor, 
                         iter = B_control$iter, 
                         warmup = B_control$warmup,
-                        chains = B_control$chains)
+                        chains = B_control$chains,
+                        control = list(adapt_delta = B_control$adapt_delta, 
+                                       max_treedepth = B_control$max_treedepth)
+                        )
       
       # B_res <- stan(model_code = new_rand_eff_nor_nor_jm_weibull, 
       #              data = data_nor_nor, 
@@ -210,7 +214,10 @@ predSurv_jm <- function(object, newdata, forecast = list(h = 5, n = 5),
                         data = data_t_t_mod3, 
                         iter = B_control$iter, 
                         warmup = B_control$warmup,
-                        chains = B_control$chains)
+                        chains = B_control$chains,
+                        control = list(adapt_delta = B_control$adapt_delta, 
+                                       max_treedepth = B_control$max_treedepth)
+                        )
       
       # B_res <- stan(model_code = new_rand_eff_t_t_mod3_jm_weibull,
       #             data = data_t_t_mod3,
