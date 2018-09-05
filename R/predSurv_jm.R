@@ -12,6 +12,9 @@ predSurv_jm <- function(object, newdata, forecast,
                         B_control = list(iter = 20, warmup = 10, chains = 1),
                         ...){
 
+  rstan_options(auto_write = TRUE)
+  options(mc.cores = parallel::detectCores())
+  
   ## be sure that B_control has 3 elements
   if(length(B_control) < 3){
     B_control_f <- list(iter = 20, warmup = 10, chains = 1)
@@ -272,7 +275,7 @@ predSurv_jm <- function(object, newdata, forecast,
     out[[i]] <- out_i
   }
   out <- do.call(rbind, out)
-  colnames(out) <- c("id", "time", "2.5%", "mean", "mean", "97.5%")
+  colnames(out) <- c("id", "time", "2.5%", "mean", "median", "97.5%")
   return(out)
   
 }
