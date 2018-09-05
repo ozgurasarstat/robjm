@@ -8,16 +8,13 @@
 #'       first element is landmark time, second is horizon, third is increment
 #' 
 
-predSurv_jm <- function(object, newdata, forecast, 
-                        B_control = list(iter = 20, warmup = 10, chains = 1),
+predSurv_jm <- function(object, newdata, forecast = list(h = 5, n = 5), 
+                        B_control = list(iter = 500, warmup = 250, chains = 1),
                         ...){
 
-  rstan_options(auto_write = TRUE)
-  options(mc.cores = parallel::detectCores())
-  
   ## be sure that B_control has 3 elements
   if(length(B_control) < 3){
-    B_control_f <- list(iter = 20, warmup = 10, chains = 1)
+    B_control_f <- list(iter = 500, warmup = 250, chains = 1)
     for(i in 1:3){
       if(!(names(B_control_f)[i] %in% names(B_control))){
         B_control[names(B_control_f)[i]] <- B_control_f[i]
@@ -159,8 +156,7 @@ predSurv_jm <- function(object, newdata, forecast,
                    )
       
       #B_sampled[[i]] <- matrix(rstan::extract(B_res)$B, ncol = q, byrow = T)
-      B_sampled[[i]] <- matrix(rstan::summary(B_res)$summary[ngroup * q, "50%"], 
-                               ncol = q, byrow = T)
+      B_sampled[[i]] <- matrix(rstan::summary(B_res)$summary[1:(ngroup*q), "50%"], ncol = q, byrow = T)
     }  
   }
   
@@ -206,8 +202,7 @@ predSurv_jm <- function(object, newdata, forecast,
                   )
       
       #B_sampled[[i]] <- matrix(extract(B_res)$B, ncol = q, byrow = T)
-      B_sampled[[i]] <- matrix(rstan::summary(B_res)$summary[ngroup * q, "50%"], 
-                               ncol = q, byrow = T)
+      B_sampled[[i]] <- matrix(rstan::summary(B_res)$summary[1:(ngroup*q), "50%"], ncol = q, byrow = T)
     }
   }
   
@@ -215,9 +210,6 @@ predSurv_jm <- function(object, newdata, forecast,
   ## the calculate the survival probabilities by pluggin in the ratio 
   ##
   
-  ft <- seq(forecast[1], forecast[2], forecast[3])
-  n_ft <- length(ft)
-
   x_base <- x[!duplicated(l_id), , drop = FALSE]
   d_base <- dmat[!duplicated(l_id), , drop = FALSE]
 
@@ -225,12 +217,17 @@ predSurv_jm <- function(object, newdata, forecast,
   
   for(i in 1:ngroup){
     
+    ft_i <- seq(S[i], (S[i] + forecast$h), length.out = forecast$n)
+    
     ft_probs_i <- list()
     ft_probs_i[[1]] <- rep(1, M)
-    for(j in 2:n_ft){
+    
+    for(j in 2:forecast$n){
+      
       ft_probs_i_k <- c()
+      
       for(k in 1:M){
-        prob_upper <- surv_prob_calc(t = ft[j], 
+        prob_upper <- surv_prob_calc(t = ft_i[j], 
                                      x = x_base[i, , drop = FALSE], 
                                      d = d_base[i, , drop = FALSE], 
                                      c = c[i, , drop = FALSE],
@@ -245,7 +242,7 @@ predSurv_jm <- function(object, newdata, forecast,
                                      pt = pt,
                                      Q = Q,
                                      bh = "weibull")
-        prob_lower <- surv_prob_calc(t = ft[1], 
+        prob_lower <- surv_prob_calc(t = ft_i[1], 
                                      x = x_base[i, , drop = FALSE], 
                                      d = d_base[i, , drop = FALSE], 
                                      c = c[i, , drop = FALSE],
@@ -271,7 +268,7 @@ predSurv_jm <- function(object, newdata, forecast,
   
   out <- list()
   for(i in 1:ngroup){
-    out_i <- cbind(rep(s_id[i], n_ft), ft, do.call(rbind, lapply(ft_probs[[i]], prob_summary)))
+    out_i <- cbind(rep(s_id[i], forecast$n), ft_i, do.call(rbind, lapply(ft_probs[[i]], prob_summary)))
     out[[i]] <- out_i
   }
   out <- do.call(rbind, out)
