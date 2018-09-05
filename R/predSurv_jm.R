@@ -117,6 +117,9 @@ predSurv_jm <- function(object, newdata, forecast = list(h = 5, n = 5),
   wt_quad <- rep(wt, ngroup)
   
   if(model == "nor_nor" & bh == "weibull"){
+    
+    mod <- stan_model(model_code = new_rand_eff_nor_nor_jm_weibull, auto_write = TRUE)
+    
     data_nor_nor <- list(ntot = ntot,
                          id = l_id, 
                          y = y, 
@@ -148,12 +151,18 @@ predSurv_jm <- function(object, newdata, forecast = list(h = 5, n = 5),
       data_nor_nor$omega      <- as.array(omega[i, ])
       data_nor_nor$eta        <- eta[i, ]
       
-      B_res <- stan(model_code = new_rand_eff_nor_nor_jm_weibull, 
-                   data = data_nor_nor, 
-                   iter = B_control$iter, 
-                   warmup = B_control$warmup,
-                   chains = B_control$chains
-                   )
+      B_res <- sampling(mod, 
+                        data = data_nor_nor, 
+                        iter = B_control$iter, 
+                        warmup = B_control$warmup,
+                        chains = B_control$chains)
+      
+      # B_res <- stan(model_code = new_rand_eff_nor_nor_jm_weibull, 
+      #              data = data_nor_nor, 
+      #              iter = B_control$iter, 
+      #              warmup = B_control$warmup,
+      #              chains = B_control$chains
+      #              )
       
       #B_sampled[[i]] <- matrix(rstan::extract(B_res)$B, ncol = q, byrow = T)
       B_sampled[[i]] <- matrix(rstan::summary(B_res)$summary[1:(ngroup*q), "50%"], ncol = q, byrow = T)
@@ -161,6 +170,9 @@ predSurv_jm <- function(object, newdata, forecast = list(h = 5, n = 5),
   }
   
   if(model == "t_t_mod3" & bh == "weibull"){
+    
+    mod <- stan_model(model_code = new_rand_eff_t_t_mod3_jm_weibull, auto_write = TRUE)
+    
     data_t_t_mod3 <- list(ntot = ntot,
                          id = l_id, 
                          y = y, 
@@ -171,7 +183,7 @@ predSurv_jm <- function(object, newdata, forecast = list(h = 5, n = 5),
                          d = d,
                          Q = Q,
                          ntot_quad = ntot_quad,
-                         S = S,
+                         S = as.array(S),
                          ncol_c = ncol_c, 
                          c = c, 
                          c_quad = c_quad,
@@ -194,12 +206,18 @@ predSurv_jm <- function(object, newdata, forecast = list(h = 5, n = 5),
       data_t_t_mod3$phi        <- phi[i, ]
       data_t_t_mod3$delta      <- delta[i, ]
       
-      B_res <- stan(model_code = new_rand_eff_nor_nor_jm_weibull, 
-                  data = data_t_t_mod3, 
-                  iter = B_control$iter, 
-                  warmup = B_control$warmup,
-                  chains = B_control$chains
-                  )
+      B_res <- sampling(mod, 
+                        data = data_t_t_mod3, 
+                        iter = B_control$iter, 
+                        warmup = B_control$warmup,
+                        chains = B_control$chains)
+      
+      # B_res <- stan(model_code = new_rand_eff_t_t_mod3_jm_weibull,
+      #             data = data_t_t_mod3,
+      #             iter = B_control$iter,
+      #             warmup = B_control$warmup,
+      #             chains = B_control$chains
+      #             )
       
       #B_sampled[[i]] <- matrix(extract(B_res)$B, ncol = q, byrow = T)
       B_sampled[[i]] <- matrix(rstan::summary(B_res)$summary[1:(ngroup*q), "50%"], ncol = q, byrow = T)
@@ -210,6 +228,11 @@ predSurv_jm <- function(object, newdata, forecast = list(h = 5, n = 5),
   ## the calculate the survival probabilities by pluggin in the ratio 
   ##
   
+  ft <- list()
+  for(i in 1:ngroup){
+    ft[[i]] <- seq(S[i], (S[i] + forecast$h), length.out = forecast$n)
+  }
+  
   x_base <- x[!duplicated(l_id), , drop = FALSE]
   d_base <- dmat[!duplicated(l_id), , drop = FALSE]
 
@@ -217,7 +240,7 @@ predSurv_jm <- function(object, newdata, forecast = list(h = 5, n = 5),
   
   for(i in 1:ngroup){
     
-    ft_i <- seq(S[i], (S[i] + forecast$h), length.out = forecast$n)
+    ft_i <- ft[[i]]
     
     ft_probs_i <- list()
     ft_probs_i[[1]] <- rep(1, M)
@@ -268,6 +291,7 @@ predSurv_jm <- function(object, newdata, forecast = list(h = 5, n = 5),
   
   out <- list()
   for(i in 1:ngroup){
+    ft_i <- ft[[i]]
     out_i <- cbind(rep(s_id[i], forecast$n), ft_i, do.call(rbind, lapply(ft_probs[[i]], prob_summary)))
     out[[i]] <- out_i
   }
