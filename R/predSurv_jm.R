@@ -3,10 +3,12 @@
 #' @description A function to predict survival probabilities
 #' 
 #' @param object A fitted object from \code{fit_jm}
-#' @param newdata 
+#' @param newdata A data frame for new patients in the longitudinal format
+#' @param forecast A numeric vector of three elements, 
+#'       first element is landmark time, second is horizon, third is increment
 #' 
 
-predSurv_jm <- function(object, newdata, l, h, inc, model, ...){
+predSurv_jm <- function(object, newdata, forecast, ...){
 
   ##
   ## first predict the random effects for the new subjects
@@ -200,7 +202,7 @@ predSurv_jm <- function(object, newdata, l, h, inc, model, ...){
   ## the calculate the survival probabilities by pluggin in the ratio 
   ##
   
-  ft <- seq(l, h, inc)
+  ft <- seq(forecast[1], forecast[2], forecast[3])
   n_ft <- length(ft)
 
   x_base <- x[!duplicated(l_id), , drop = FALSE]
