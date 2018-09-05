@@ -55,6 +55,7 @@ predSurv_jm <- function(object, newdata, forecast = list(h = 5, n = 5),
   newdata[, id_long] <- rep(1:ngroup, nobs)
   
   data_surv <- newdata[!duplicated(newdata[, id_long]), ]
+  s_id_orig <- data_surv[, id_surv]
   data_surv[, id_surv] <- 1:ngroup
   
   l_id <- newdata[, id_long]
@@ -300,11 +301,14 @@ predSurv_jm <- function(object, newdata, forecast = list(h = 5, n = 5),
   out <- list()
   for(i in 1:ngroup){
     ft_i <- ft[[i]]
-    out_i <- cbind(rep(s_id[i], forecast$n), ft_i, do.call(rbind, lapply(ft_probs[[i]], prob_summary)))
+    out_i <- data.frame(id = rep(s_id_orig[i], forecast$n), ,
+                        time = ft_i, 
+                        do.call(rbind, lapply(ft_probs[[i]], prob_summary)))
+    names(out_i)[3:6] <- c("2.5%", "mean", "median", "97.5%")
     out[[i]] <- out_i
   }
   out <- do.call(rbind, out)
-  colnames(out) <- c("id", "time", "2.5%", "mean", "median", "97.5%")
+  #colnames(out) <- c("id", "time", "2.5%", "mean", "median", "97.5%")
   return(out)
   
 }
