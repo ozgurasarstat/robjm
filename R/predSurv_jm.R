@@ -8,8 +8,20 @@
 #'       first element is landmark time, second is horizon, third is increment
 #' 
 
-predSurv_jm <- function(object, newdata, forecast, ...){
+predSurv_jm <- function(object, newdata, forecast, 
+                        B_control = list(iter = 20, warmup = 10, chains = 1),
+                        ...){
 
+  ## be sure that B_control has 3 elements
+  if(length(B_control) < 3){
+    B_control_f <- list(iter = 20, warmup = 10, chains = 1)
+    for(i in 1:3){
+      if(!(names(B_control_f)[i] %in% names(B_control))){
+        B_control[names(B_control_f)[i]] <- B_control_f[i]
+      }
+    }
+  }
+  
   ##
   ## first predict the random effects for the new subjects
   ##
@@ -18,19 +30,19 @@ predSurv_jm <- function(object, newdata, forecast, ...){
   bh    <- object$bh
   
   ## extract the chains
-  alpha      <- rstan::extract(object$res, pars = "alpha")
-  Sigma_long <- rstan::extract(object$res, pars = "Sigma")
+  alpha      <- rstan::extract(object$res)$alpha
+  Sigma_long <- rstan::extract(object$res)$Sigma
   M          <- nrow(alpha)
   Sigma      <- lapply(1:M, function(i) Sigma_long[i, ,])
-  sigma_Z    <- matrix(rstan::extract(object$res, pars = "sigma_Z"))
-  log_lambda <- matrix(rstan::extract(object$res, pars = "log_lambda"))
-  log_nu     <- matrix(rstan::extract(object$res, pars = "log_nu"))
-  omega      <- rstan::extract(object$res, pars = "omega")
-  eta        <- rstan::matrix(extract(object$res, pars = "eta"))
+  sigma_Z    <- matrix(rstan::extract(object$res)$sigma_Z)
+  log_lambda <- matrix(rstan::extract(object$res)$log_lambda)
+  log_nu     <- matrix(rstan::extract(object$res)$log_nu)
+  omega      <- rstan::extract(object$res)$omega
+  eta        <- matrix(rstan::extract(object$res)$eta)
   
   if(model == "t_t_mod3"){
-    phi   <- matrix(extract(object$res, pars = "phi"))
-    delta <- matrix(extract(object$res, pars = "delta"))
+    phi   <- matrix(rstan::extract(object$res)$phi)
+    delta <- matrix(rstan::extract(object$res)$delta)
   }
   
   ## create covariate matrices
@@ -38,7 +50,7 @@ predSurv_jm <- function(object, newdata, forecast, ...){
   id_surv <- object$id_surv
   
   ngroup <- length(unique(newdata[, id_long]))
-  nobs   <- as.numeric(table(newdata[, id_long]))
+  #nobs   <- as.numeric(table(newdata[, id_long]))
   #newdata[, id_long] <- rep(1:ngroup, nobs)
   
   data_surv <- newdata[!duplicated(newdata[, id_long]), ]
@@ -82,14 +94,14 @@ predSurv_jm <- function(object, newdata, forecast, ...){
   
   ## x matrix for log survival density
   timeVar <- object$timeVar
-  x_T <- x[!duplicated(l_id), ]
+  x_T <- x[!duplicated(l_id), , drop = FALSE]
   x_T[, timeVar] <- S
   
   x_quad <- x_T[rep(1:ngroup, times = Q), ]
   x_quad[, timeVar] <- t_quad
   
   ## d matrix for log survival density
-  dmat_T <- dmat[!duplicated(l_id), ]
+  dmat_T <- dmat[!duplicated(l_id), , drop = FALSE]
   dmat_T[, timeVar] <- S
   id_dmat_T <- data.frame(s_id, dmat_T)
   id_dmat_list_T <- lapply(split(id_dmat_T[, -1], id_dmat_T[, 1]), as.matrix)
@@ -115,7 +127,7 @@ predSurv_jm <- function(object, newdata, forecast, ...){
                          d = d,
                          Q = Q,
                          ntot_quad = ntot_quad,
-                         S = S,
+                         S = as.array(S),
                          ncol_c = ncol_c, 
                          c = c, 
                          c_quad = c_quad,
@@ -136,16 +148,16 @@ predSurv_jm <- function(object, newdata, forecast, ...){
       data_nor_nor$omega      <- as.array(omega[i, ])
       data_nor_nor$eta        <- eta[i, ]
       
-      res <- stan(model_code = new_rand_eff_nor_nor_jm_weibull, 
-                  data = data_nor_nor, 
-                  iter = 1, 
-                  chains = 1,
-                  warmup = 0,
-                  control = list(adapt_delta = 0.9999, max_treedepth = 15)
-      )
+      B_res <- stan(model_code = new_rand_eff_nor_nor_jm_weibull, 
+                   data = data_nor_nor, 
+                   iter = B_control$iter, 
+                   warmup = B_control$warmup,
+                   chains = B_control$chains
+                   )
       
-      B_sampled[[i]] <- matrix(extract(res)$B, ncol = q, byrow = T)
-      
+      #B_sampled[[i]] <- matrix(rstan::extract(B_res)$B, ncol = q, byrow = T)
+      B_sampled[[i]] <- matrix(rstan::summary(B_res)$summary[ngroup * q, "50%"], 
+                               ncol = q, byrow = T)
     }  
   }
   
@@ -183,16 +195,16 @@ predSurv_jm <- function(object, newdata, forecast, ...){
       data_t_t_mod3$phi        <- phi[i, ]
       data_t_t_mod3$delta      <- delta[i, ]
       
-      res <- stan(model_code = new_rand_eff_nor_nor_jm_weibull, 
+      B_res <- stan(model_code = new_rand_eff_nor_nor_jm_weibull, 
                   data = data_t_t_mod3, 
-                  iter = 1, 
-                  chains = 1,
-                  warmup = 0,
-                  control = list(adapt_delta = 0.9999, max_treedepth = 15)
-      )
+                  iter = B_control$iter, 
+                  warmup = B_control$warmup,
+                  chains = B_control$chains
+                  )
       
-      B_sampled[[i]] <- matrix(extract(res)$B, ncol = q, byrow = T)
-      
+      #B_sampled[[i]] <- matrix(extract(B_res)$B, ncol = q, byrow = T)
+      B_sampled[[i]] <- matrix(rstan::summary(B_res)$summary[ngroup * q, "50%"], 
+                               ncol = q, byrow = T)
     }
   }
   
@@ -209,10 +221,6 @@ predSurv_jm <- function(object, newdata, forecast, ...){
   ft_probs <- list()
   
   for(i in 1:ngroup){
-
-    x_i <- x[nobs_cumsum[i]:nobs_cumsum[i+1], , drop = FALSE]
-    d_i <- dmat[nobs_cumsum[i]:nobs_cumsum[i+1], , drop = FALSE]
-    c_i <- c[i, , drop = FALSE]
     
     ft_probs_i <- list()
     ft_probs_i[[1]] <- rep(1, M)
