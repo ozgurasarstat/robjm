@@ -104,7 +104,7 @@ predSurv_jm <- function(object, newdata, l, h, inc, model, ...){
   ## extend the weights for quadrature approx.
   wt_quad <- rep(wt, ngroup)
   
-  if(model == "nor_nor" & bh = "weibull"){
+  if(model == "nor_nor" & bh == "weibull"){
     data_nor_nor <- list(ntot = ntot,
                          id = l_id, 
                          y = y, 
@@ -149,7 +149,7 @@ predSurv_jm <- function(object, newdata, l, h, inc, model, ...){
     }  
   }
   
-  if(model == "t_t_mod3" & bh = "weibull"){
+  if(model == "t_t_mod3" & bh == "weibull"){
     data_t_t_mod3 <- list(ntot = ntot,
                          id = l_id, 
                          y = y, 

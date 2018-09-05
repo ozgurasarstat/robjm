@@ -5,8 +5,8 @@
 \title{Bayesian inference for joint models}
 \usage{
 fit_jm(fixed_long, random_long, fixed_surv, data_long, data_surv, id_long,
-  id_surv, model, timeVar, bh = "weibull", bh_nknots = 2, spline_tv,
-  Q = 15, priors = list(), ...)
+  id_surv, model, timeVar, bh = "weibull", bh_nknots = 2,
+  spline_tv = list("time", 2), Q = 15, priors = list(), ...)
 }
 \arguments{
 \item{fixed_long}{A two-sided formula for fixed effects of longitudinal sub-model}
@@ -26,8 +26,8 @@ e.g. \code{cbind(Time, death) ~ x}}
 \item{id_surv}{A character string that indicates the column name for the id column in \code{data_surv}}
 
 \item{model}{A character string for model identification; options are: 
-"nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod3" (not yet available), 
-"t_t_tv", "nor_t_tv" (not yet available)}
+"nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod3",
+"t_t_tv",}
 
 \item{timeVar}{A character string for the column name of the time variable in \code{data_long}}
 
