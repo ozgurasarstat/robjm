@@ -17,22 +17,20 @@ predSurv_jm <- function(object, newdata, forecast, ...){
   model <- object$model
   bh    <- object$bh
   
-  ###### normal-normal model with Weibull baseline hazard
-  
   ## extract the chains
-  alpha      <- extract(object$res)$alpha
-  Sigma_long <- extract(object$res)$Sigma
+  alpha      <- rstan::extract(object$res, pars = "alpha")
+  Sigma_long <- rstan::extract(object$res, pars = "Sigma")
   M          <- nrow(alpha)
   Sigma      <- lapply(1:M, function(i) Sigma_long[i, ,])
-  sigma_Z    <- matrix(extract(object$res)$sigma_Z)
-  log_lambda <- matrix(extract(object$res)$log_lambda)
-  log_nu     <- matrix(extract(object$res)$log_nu)
-  omega      <- extract(object$res)$omega
-  eta        <- matrix(extract(object$res)$eta)
+  sigma_Z    <- matrix(rstan::extract(object$res, pars = "sigma_Z"))
+  log_lambda <- matrix(rstan::extract(object$res, pars = "log_lambda"))
+  log_nu     <- matrix(rstan::extract(object$res, pars = "log_nu"))
+  omega      <- rstan::extract(object$res, pars = "omega")
+  eta        <- rstan::matrix(extract(object$res, pars = "eta"))
   
   if(model == "t_t_mod3"){
-    phi   <- matrix(extract(object$res)$phi)
-    delta <- matrix(extract(object$res)$delta)
+    phi   <- matrix(extract(object$res, pars = "phi"))
+    delta <- matrix(extract(object$res, pars = "delta"))
   }
   
   ## create covariate matrices
