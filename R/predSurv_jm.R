@@ -51,10 +51,11 @@ predSurv_jm <- function(object, newdata, forecast = list(h = 5, n = 5),
   id_surv <- object$id_surv
   
   ngroup <- length(unique(newdata[, id_long]))
-  #nobs   <- as.numeric(table(newdata[, id_long]))
-  #newdata[, id_long] <- rep(1:ngroup, nobs)
+  nobs   <- as.numeric(table(newdata[, id_long]))
+  newdata[, id_long] <- rep(1:ngroup, nobs)
   
   data_surv <- newdata[!duplicated(newdata[, id_long]), ]
+  data_surv[, id_surv] <- 1:ngroup
   
   l_id <- newdata[, id_long]
   s_id <- data_surv[, id_surv]
