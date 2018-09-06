@@ -1,17 +1,23 @@
-predSurv_jm_supp <- function(batch_data, 
+predSurv_jm_supp <- function(object = object, 
+                             batch_data, 
                              forecast, 
                              B_control, 
-                             model,
-                             bh,
-                             id_long,
-                             id_surv,
-                             fixed_long,
-                             fixed_surv,
-                             random_long,
-                             timeVar,
                              Q,
                              wt,
                              pt){
+  
+  ## make sure that first row for everyone is prob of 1 at stime
+  forecast$n <- forecast$n + 1
+  
+  ## extract info to be used
+  model <- object$model
+  bh <- object$bh
+  id_long <- object$id_long
+  id_surv <- object$id_surv
+  fixed_long <- object$fixed_long
+  fixed_surv <- object$fixed_surv
+  random_long <- object$random_long
+  timeVar <- object$timeVar
   
   ## extract the chains
   alpha      <- rstan::extract(object$res)$alpha
@@ -100,7 +106,7 @@ predSurv_jm_supp <- function(batch_data,
   
   if(model == "nor_nor" & bh == "weibull"){
     
-    mod <- stan_model(model_code = new_rand_eff_nor_nor_jm_weibull, auto_write = TRUE)
+    mod <- rstan::stan_model(model_code = new_rand_eff_nor_nor_jm_weibull, auto_write = TRUE)
     
     data_nor_nor <- list(ntot = ntot,
                          id = l_id, 
@@ -133,7 +139,7 @@ predSurv_jm_supp <- function(batch_data,
       data_nor_nor$omega      <- as.array(omega[i, ])
       data_nor_nor$eta        <- eta[i, ]
       
-      B_res <- sampling(mod, 
+      B_res <- rstan::sampling(mod, 
                         data = data_nor_nor, 
                         iter = B_control$iter, 
                         warmup = B_control$warmup,
@@ -147,7 +153,7 @@ predSurv_jm_supp <- function(batch_data,
   
   if(model == "t_t_mod3" & bh == "weibull"){
     
-    mod <- stan_model(model_code = new_rand_eff_t_t_mod3_jm_weibull, auto_write = TRUE)
+    mod <- rstan::stan_model(model_code = new_rand_eff_t_t_mod3_jm_weibull, auto_write = TRUE)
     
     data_t_t_mod3 <- list(ntot = ntot,
                           id = l_id, 
@@ -182,7 +188,7 @@ predSurv_jm_supp <- function(batch_data,
       data_t_t_mod3$phi        <- phi[i, ]
       data_t_t_mod3$delta      <- delta[i, ]
       
-      B_res <- sampling(mod, 
+      B_res <- rstan::sampling(mod, 
                         data = data_t_t_mod3, 
                         iter = B_control$iter, 
                         warmup = B_control$warmup,

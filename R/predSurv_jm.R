@@ -67,16 +67,9 @@ predSurv_jm <- function(object,
     for(i in 1:iterations){
       
       pred_out[[i]] <- predSurv_jm_supp(batch_data = newdata_batch[[i]], 
+                                        object = object,
                                         forecast = forecast, 
                                         B_control = B_control, 
-                                        model = object$model,
-                                        bh = object$bh,
-                                        id_long = object$id_long,
-                                        id_surv = object$id_surv,
-                                        fixed_long = object$fixed_long,
-                                        fixed_surv = object$fixed_surv,
-                                        random_long = object$random_long,
-                                        timeVar = object$timeVar,
                                         Q = Q,
                                         wt = wt,
                                         pt = pt)
@@ -89,32 +82,24 @@ predSurv_jm <- function(object,
     
     registerDoSNOW(cl)
     
-    pb <- txtProgressBar(max = 100, style = 3)
+    pb <- txtProgressBar(max = iterations, style = 3)
     progress <- function(n) setTxtProgressBar(pb, n)
     opts <- list(progress = progress)
     
-    clusterExport(cl, varlist = c('newdata_batch', 'forecast', 'B_control',
-                                  'object', 'Q', "wt", "pt"), envir = environment())
+    clusterExport(cl, list = c('newdata_batch', 'forecast', 'B_control',
+                               'object', 'Q', "wt", "pt"), envir = environment())
     
-    pred_out <- foreach(i = 1:iterations, .options.snow = opts) %dopar%
+    pred_out <- foreach(i = 1:iterations, .options.snow = opts, .packages = c("rstan", "magic")) %dopar%
     {
       
       pred_i <- predSurv_jm_supp(batch_data = newdata_batch[[i]], 
+                                 object = object,
                                  forecast = forecast, 
                                  B_control = B_control, 
-                                 chains = chains, 
-                                 M = M,
-                                 model = object$model,
-                                 bh = object$bh,
-                                 id_long = object$id_long,
-                                 id_surv = object$id_surv,
-                                 fixed_long = object$fixed_long,
-                                 fixed_surv = object$fixed_surv,
-                                 random_long = object$random_long,
-                                 timeVar = object$timeVar,
                                  Q = Q,
                                  wt = wt,
-                                 pt = pt)
+                                 pt = pt
+                                 )
       return(pred_i)
       
     }
@@ -122,5 +107,8 @@ predSurv_jm <- function(object,
     stopCluster(cl)
       
   }
+  
+  out <- do.call(rbind, pred_out)
+  return(out)
   
 }
