@@ -1,8 +1,6 @@
 predSurv_jm_supp <- function(batch_data, 
                              forecast, 
                              B_control, 
-                             chains, 
-                             M,
                              model,
                              bh,
                              id_long,
@@ -14,6 +12,22 @@ predSurv_jm_supp <- function(batch_data,
                              Q,
                              wt,
                              pt){
+  
+  ## extract the chains
+  alpha      <- rstan::extract(object$res)$alpha
+  Sigma_long <- rstan::extract(object$res)$Sigma
+  M          <- nrow(alpha)
+  Sigma      <- lapply(1:M, function(i) Sigma_long[i, ,])
+  sigma_Z    <- matrix(rstan::extract(object$res)$sigma_Z)
+  log_lambda <- matrix(rstan::extract(object$res)$log_lambda)
+  log_nu     <- matrix(rstan::extract(object$res)$log_nu)
+  omega      <- rstan::extract(object$res)$omega
+  eta        <- matrix(rstan::extract(object$res)$eta)
+  
+  if(object$model == "t_t_mod3"){
+    phi   <- matrix(rstan::extract(object$res)$phi)
+    delta <- matrix(rstan::extract(object$res)$delta)
+  }
   
   ##
   ## first predict the random effects for the new subjects
@@ -46,7 +60,9 @@ predSurv_jm_supp <- function(batch_data,
   q <- ncol(id_dmat) - 1
   
   ## extract survival times and event indicator
-  S <- model.frame(fixed_surv, data_surv)[, 1][, 1]
+  mf_surv <- model.frame(fixed_surv, data_surv)
+  S <- mf_surv[, 1][, 1]
+  E <- mf_surv[, 1][, 2]
   
   ## calculate times for hazard function for quadrature approx
   t_quad <- 0.5 * rep(S, each = Q) * (1 + rep(pt, ngroup))
@@ -105,7 +121,7 @@ predSurv_jm_supp <- function(batch_data,
                          d_T = d_T,
                          d_quad = d_quad,
                          wt_quad = wt_quad
-    )
+                         )
     B_sampled <- list()
     
     for(i in 1:M){
@@ -247,10 +263,12 @@ predSurv_jm_supp <- function(batch_data,
   out <- list()
   for(i in 1:ngroup){
     ft_i <- ft[[i]]
-    out_i <- data.frame(id = rep(s_id_orig[i], forecast$n), 
+    out_i <- data.frame(id = rep(s_id_orig[i], forecast$n),
+                        stime = rep(S[i], forecast$n),
+                        event = rep(E[i], forecast$n),
                         time = ft_i, 
                         do.call(rbind, lapply(ft_probs[[i]], prob_summary)))
-    names(out_i)[3:6] <- c("2.5%", "mean", "median", "97.5%")
+    names(out_i)[5:8] <- c("2.5%", "mean", "median", "97.5%")
     out[[i]] <- out_i
   }
   out <- do.call(rbind, out)
