@@ -6,8 +6,9 @@ library(devtools)
 install_github("ozgurasarstat/robjm")  
 library(robjm)  
 
-TO DO: 
-
-- add prediction functions for survival probabilities
-- interaction for the design matrices for quadratures
-- add rate of change to the survival submodel
+TO DO:
+- add rate of change to the survival model
+- prediction for the models other than nor and mod3
+- prediction for longitudinal data
+- plot, summary, print etc
+ 
