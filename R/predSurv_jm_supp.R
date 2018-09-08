@@ -82,21 +82,23 @@ predSurv_jm_supp <- function(object = object,
   c_quad <- apply(c, 2, function(i) rep(i, each = Q))
   
   ## x matrix for log survival density
-  x_T <- x[!duplicated(l_id), , drop = FALSE]
-  x_T[, timeVar] <- S
   
-  x_quad <- x_T[rep(1:ngroup, times = Q), ]
-  x_quad[, timeVar] <- t_quad
+  batch_data_base <- batch_data[!duplicated(l_id), ]
+  batch_data_quad <- batch_data_base[rep(1:ngroup, times = Q), ]
   
+  batch_data_base[, timeVar] <- S
+  batch_data_quad[, timeVar] <- t_quad
+  
+  x_T    <- model.matrix(fixed_long, batch_data_base)
+  x_quad <- model.matrix(fixed_long, batch_data_quad)
+
   ## d matrix for log survival density
-  dmat_T <- dmat[!duplicated(l_id), , drop = FALSE]
-  dmat_T[, timeVar] <- S
+  dmat_T <- model.matrix(random_long, batch_data_base)
   id_dmat_T <- data.frame(s_id, dmat_T)
   id_dmat_list_T <- lapply(split(id_dmat_T[, -1], id_dmat_T[, 1]), as.matrix)
   d_T <- do.call(magic::adiag, id_dmat_list_T)
   
-  dmat_quad <- dmat_T[rep(1:ngroup, times = Q), ]
-  dmat_quad[, timeVar] <- t_quad
+  dmat_quad <- model.matrix(random_long, batch_data_quad)
   id_dmat_quad <- data.frame(rep(s_id, each = Q), dmat_quad)
   id_dmat_list_quad <- lapply(split(id_dmat_quad[, -1], id_dmat_quad[, 1]), as.matrix)
   d_quad <- do.call(magic::adiag, id_dmat_list_quad)

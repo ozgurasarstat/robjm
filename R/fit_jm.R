@@ -57,7 +57,8 @@ fit_jm <- function(fixed_long,
 
   ## be sure that distribution specifications are correct
   if(!(model %in% c("nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod3", "t_t_tv"))){
-    stop("Model should be one of the followings: nor_nor, t_t_mod1, t_t_mod2, t_t_mod3, nor_t_mod3, t_t_tv")
+    stop("Model should be one of the followings: nor_nor, t_t_mod1, t_t_mod2, t_t_mod3, 
+         nor_t_mod3, t_t_tv")
   }
 
   ## organise priors
@@ -129,7 +130,8 @@ fit_jm <- function(fixed_long,
   
   
   ## be sure that id is: 1, 2, 3, ...
-  data_long[, id_long] <- rep(1:length(unique(data_long[, id_long])), as.numeric(table(data_long[, id_long])))
+  data_long[, id_long] <- rep(1:length(unique(data_long[, id_long])), 
+                              as.numeric(table(data_long[, id_long])))
   l_id <- data_long[, id_long]
   
   data_surv[, id_surv] <- rep(1:nrow(data_surv))
@@ -202,22 +204,40 @@ fit_jm <- function(fixed_long,
   c_quad <- apply(c, 2, function(i) rep(i, each = Q))
   
   ## x matrix for log survival density
-  x_T <- x[!duplicated(l_id), ] #cbind(1, S) 
-  x_T[, timeVar] <- S
+  # x_T <- x[!duplicated(l_id), ] #cbind(1, S) 
+  # x_T[, timeVar] <- S
+  # 
+  # x_quad <- x_T[rep(1:ngroup, times = Q), ]#cbind(1, t_quad)
+  # x_quad[, timeVar] <- t_quad
+  data_long_base <- data_long[!duplicated(l_id), ]
+  data_long_quad <- data_long_base[rep(1:ngroup, times = Q), ]
   
-  x_quad <- x_T[rep(1:ngroup, times = Q), ]#cbind(1, t_quad)
-  x_quad[, timeVar] <- t_quad
+  data_long_base[, timeVar] <- S
+  data_long_quad[, timeVar] <- t_quad
+  
+  x_T    <- model.matrix(fixed_long, data_long_base)
+  x_quad <- model.matrix(fixed_long, data_long_quad)
   
   ## d matrix for log survival density
-  dmat_T <- dmat[!duplicated(l_id), ]
-  dmat_T[, timeVar] <- S
-  id_dmat_T <- data.frame(s_id, dmat_T)#cbind(1, S))
+  # dmat_T <- dmat[!duplicated(l_id), ]
+  # dmat_T[, timeVar] <- S
+  # id_dmat_T <- data.frame(s_id, dmat_T)#cbind(1, S))
+  # id_dmat_list_T <- lapply(split(id_dmat_T[, -1], id_dmat_T[, 1]), as.matrix)
+  # d_T <- do.call(magic::adiag, id_dmat_list_T)
+  # 
+  # dmat_quad <- dmat_T[rep(1:ngroup, times = Q), ]
+  # dmat_quad[, timeVar] <- t_quad
+  # id_dmat_quad <- data.frame(rep(s_id, each = Q), dmat_quad)#cbind(1, t_quad))
+  # id_dmat_list_quad <- lapply(split(id_dmat_quad[, -1], id_dmat_quad[, 1]), as.matrix)
+  # d_quad <- do.call(magic::adiag, id_dmat_list_quad)
+  
+  dmat_T <- model.matrix(random_long, data_long_base)
+  id_dmat_T <- data.frame(s_id, dmat_T)
   id_dmat_list_T <- lapply(split(id_dmat_T[, -1], id_dmat_T[, 1]), as.matrix)
   d_T <- do.call(magic::adiag, id_dmat_list_T)
   
-  dmat_quad <- dmat_T[rep(1:ngroup, times = Q), ]
-  dmat_quad[, timeVar] <- t_quad
-  id_dmat_quad <- data.frame(rep(s_id, each = Q), dmat_quad)#cbind(1, t_quad))
+  dmat_quad <- model.matrix(random_long, data_long_quad)
+  id_dmat_quad <- data.frame(rep(s_id, each = Q), dmat_quad)
   id_dmat_list_quad <- lapply(split(id_dmat_quad[, -1], id_dmat_quad[, 1]), as.matrix)
   d_quad <- do.call(magic::adiag, id_dmat_list_quad)
   
@@ -300,7 +320,6 @@ fit_jm <- function(fixed_long,
                            t_quad = t_quad
                            )
       res <- stan(model_code = nor_nor_jm_weibull, data = data_nor_nor, ...)
-      
     }
     
   }
