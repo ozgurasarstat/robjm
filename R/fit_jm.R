@@ -355,7 +355,26 @@ fit_jm <- function(fixed_long,
       res <- stan(model_code =t_t_jm_mod2_weibull, data = data_stan, ...)
     }
     if(model == "t_t_mod3"){
-      res <- stan(model_code = t_t_jm_mod3_weibull, data = data_stan, ...)
+
+      if(!is.null(deriv)){
+        
+        data_stan$x_deriv_T <- x_deriv_T
+        data_stan$x_deriv_quad <- x_deriv_quad
+        data_stan$d_deriv_T <- d_deriv_T
+        data_stan$d_deriv_quad <- d_deriv_quad
+        data_stan$p_deriv <- length(deriv_alpha_ind)
+        data_stan$q_deriv <- length(deriv_B_ind)
+        data_stan$deriv_alpha_ind <- as.array(deriv_alpha_ind)
+        data_stan$deriv_B_ind <- as.array(deriv_B_ind)
+        
+        res <- stan(model_code = t_t_jm_mod3_weibull_deriv, data = data_stan, ...)
+        
+      }else{
+        
+        res <- stan(model_code = t_t_jm_mod3_weibull, data = data_stan, ...)
+        
+      }
+      
     }
     if(model == "nor_t_mod3"){
       res <- stan(model_code = nor_t_jm_mod3_weibull, data = data_stan, ...)
@@ -404,7 +423,7 @@ fit_jm <- function(fixed_long,
               priors = priors,
               deriv = deriv,
               res = res
-              )p
+              )
               
   return(out)  
   

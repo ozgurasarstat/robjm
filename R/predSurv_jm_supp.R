@@ -194,7 +194,11 @@ predSurv_jm_supp <- function(object = object,
   
   if(model == "t_t_mod3" & bh == "weibull"){
     
-    mod <- rstan::stan_model(model_code = new_rand_eff_t_t_mod3_jm_weibull, auto_write = TRUE)
+    if(is.null(deriv)){
+      mod <- rstan::stan_model(model_code = new_rand_eff_t_t_mod3_jm_weibull, auto_write = TRUE)
+    }else{
+      mod <- rstan::stan_model(model_code = new_rand_eff_t_t_mod3_jm_weibull_deriv, auto_write = TRUE)
+    }
     
     data_t_t_mod3 <- list(ntot = ntot,
                           id = l_id, 
@@ -214,8 +218,19 @@ predSurv_jm_supp <- function(object = object,
                           x_quad = x_quad,
                           d_T = d_T,
                           d_quad = d_quad,
-                          wt_quad = wt_quad
-    )
+                          wt_quad = wt_quad)
+    
+    if(!is.null(deriv)){
+      data_nor_nor$x_deriv_T <- x_deriv_T
+      data_nor_nor$x_deriv_quad <- x_deriv_quad
+      data_nor_nor$d_deriv_T <- d_deriv_T
+      data_nor_nor$d_deriv_quad <- d_deriv_quad
+      data_nor_nor$p_deriv <- length(deriv_alpha_ind)
+      data_nor_nor$q_deriv <- length(deriv_B_ind)
+      data_nor_nor$deriv_alpha_ind <- as.array(deriv_alpha_ind)
+      data_nor_nor$deriv_B_ind <- as.array(deriv_B_ind)
+    }
+    
     B_sampled <- list()
     
     for(i in 1:M){
