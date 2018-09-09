@@ -48,6 +48,7 @@ fit_jm <- function(fixed_long,
                    id_surv,
                    model, 
                    timeVar,
+                   deriv = NULL,
                    bh = "weibull",
                    bh_nknots = 2, #number of knots for baseline hazard 
                    spline_tv = list("time", 2), #spline for tv dof - same in fit_ld
@@ -203,12 +204,7 @@ fit_jm <- function(fixed_long,
   ncol_c <- ncol(c)
   c_quad <- apply(c, 2, function(i) rep(i, each = Q))
   
-  ## x matrix for log survival density
-  # x_T <- x[!duplicated(l_id), ] #cbind(1, S) 
-  # x_T[, timeVar] <- S
-  # 
-  # x_quad <- x_T[rep(1:ngroup, times = Q), ]#cbind(1, t_quad)
-  # x_quad[, timeVar] <- t_quad
+  ## x and d matrices at survival times and quadrature times
   data_long_base <- data_long[!duplicated(l_id), ]
   data_long_quad <- data_long_base[rep(1:ngroup, times = Q), ]
   
@@ -217,20 +213,7 @@ fit_jm <- function(fixed_long,
   
   x_T    <- model.matrix(fixed_long, data_long_base)
   x_quad <- model.matrix(fixed_long, data_long_quad)
-  
-  ## d matrix for log survival density
-  # dmat_T <- dmat[!duplicated(l_id), ]
-  # dmat_T[, timeVar] <- S
-  # id_dmat_T <- data.frame(s_id, dmat_T)#cbind(1, S))
-  # id_dmat_list_T <- lapply(split(id_dmat_T[, -1], id_dmat_T[, 1]), as.matrix)
-  # d_T <- do.call(magic::adiag, id_dmat_list_T)
-  # 
-  # dmat_quad <- dmat_T[rep(1:ngroup, times = Q), ]
-  # dmat_quad[, timeVar] <- t_quad
-  # id_dmat_quad <- data.frame(rep(s_id, each = Q), dmat_quad)#cbind(1, t_quad))
-  # id_dmat_list_quad <- lapply(split(id_dmat_quad[, -1], id_dmat_quad[, 1]), as.matrix)
-  # d_quad <- do.call(magic::adiag, id_dmat_list_quad)
-  
+
   dmat_T <- model.matrix(random_long, data_long_base)
   id_dmat_T <- data.frame(s_id, dmat_T)
   id_dmat_list_T <- lapply(split(id_dmat_T[, -1], id_dmat_T[, 1]), as.matrix)
@@ -240,6 +223,29 @@ fit_jm <- function(fixed_long,
   id_dmat_quad <- data.frame(rep(s_id, each = Q), dmat_quad)
   id_dmat_list_quad <- lapply(split(id_dmat_quad[, -1], id_dmat_quad[, 1]), as.matrix)
   d_quad <- do.call(magic::adiag, id_dmat_list_quad)
+  
+  ## prepare x and d matrices for the derivative
+  if(!is.null(deriv)){
+    
+    deriv_fixed_formula  <- deriv$deriv_fixed_formula
+    deriv_alpha_ind      <- deriv$deriv_alpha_ind
+    deriv_random_formula <- deriv$deriv_random_formula
+    deriv_B_ind          <- deriv$deriv_B_ind
+    
+    x_deriv_T <- model.matrix(deriv_fixed_formula, data_long_base)
+    x_deriv_quad <- model.matrix(deriv_fixed_formula, data_long_quad)
+    
+    dmat_deriv_T <- model.matrix(deriv_random_formula, data_long_base)
+    id_dmat_deriv_T <- data.frame(s_id, dmat_deriv_T)
+    id_dmat_deriv_list_T <- lapply(split(id_dmat_deriv_T[, -1], id_dmat_deriv_T[, 1]), as.matrix)
+    d_deriv_T <- do.call(magic::adiag, id_dmat_deriv_list_T)
+    
+    dmat_deriv_quad <- model.matrix(deriv_random_formula, data_long_quad)
+    id_dmat_deriv_quad <- data.frame(rep(s_id, each = Q), dmat_deriv_quad)
+    id_dmat_deriv_list_quad <- lapply(split(id_dmat_deriv_quad[, -1], id_dmat_deriv_quad[, 1]), as.matrix)
+    d_deriv_quad <- do.call(magic::adiag, id_dmat_deriv_list_quad)
+    
+  }
   
   ## extend the weights for quadrature approx.
   wt_quad <- rep(wt, ngroup)
@@ -261,225 +267,123 @@ fit_jm <- function(fixed_long,
     priors_surv <- rev(unlist(priors))[1:4]
   }
   
+  ## prepare data as a list to be passed to stan
+  ## it is the shared version for 
+  ## normal and t (mod1, mod2, mod3, tv), weibull, rate of change etc
+  ## extra input will be added for the specific model when necessary
+  
+  data_stan <- list(ntot = ntot,
+                    id = l_id, 
+                    y = y, 
+                    p = p,
+                    q = q,
+                    ngroup = ngroup, 
+                    x = x, 
+                    d = d,
+                    priors_long = priors_long,
+                    priors_surv = priors_surv,
+                    Q = Q,
+                    ntot_quad = ntot_quad,
+                    S = S,
+                    E = E,
+                    ncol_c = ncol_c, 
+                    c = c, 
+                    c_quad = c_quad,
+                    x_T = x_T,
+                    x_quad = x_quad,
+                    d_T = d_T,
+                    d_quad = d_quad,
+                    wt_quad = wt_quad,
+                    t_quad = t_quad)
+  
   if(model == "nor_nor"){
+    
     if(bh %in% c("spline", "piecewise")){
-      data_nor_nor <- list(ntot = ntot,
-                           id = l_id, 
-                           y = y, 
-                           p = p,
-                           q = q,
-                           ngroup = ngroup, 
-                           x = x, 
-                           d = d,
-                           priors_long = priors_long,
-                           priors_surv = priors_surv,
-                           Q = Q,
-                           ntot_quad = ntot_quad,
-                           S = S,
-                           E = E,
-                           ncol_e = ncol_e, 
-                           e = e, 
-                           e_quad = e_quad,
-                           ncol_c = ncol_c, 
-                           c = c, 
-                           c_quad = c_quad,
-                           x_T = x_T,
-                           x_quad = x_quad,
-                           d_T = d_T,
-                           d_quad = d_quad,
-                           wt_quad = wt_quad
-                           )
-      res <- stan(model_code = nor_nor_jm, data = data_nor_nor, ...)
+      
+      data_stan$ncol_e <- ncol_e
+      data_stan$e <- e
+      data_stan$e_quad <- e_quad
+      
+      res <- stan(model_code = nor_nor_jm, data = data_stan, ...)
       
     }else if(bh == "weibull"){
-      data_nor_nor <- list(ntot = ntot,
-                           id = l_id, 
-                           y = y, 
-                           p = p,
-                           q = q,
-                           ngroup = ngroup, 
-                           x = x, 
-                           d = d,
-                           priors_long = priors_long,
-                           priors_surv = priors_surv,
-                           Q = Q,
-                           ntot_quad = ntot_quad,
-                           S = S,
-                           E = E,
-                           #ncol_e = ncol_e, 
-                           #e = e, 
-                           #e_quad = e_quad,
-                           ncol_c = ncol_c, 
-                           c = c, 
-                           c_quad = c_quad,
-                           x_T = x_T,
-                           x_quad = x_quad,
-                           d_T = d_T,
-                           d_quad = d_quad,
-                           wt_quad = wt_quad,
-                           t_quad = t_quad
-                           )
-      res <- stan(model_code = nor_nor_jm_weibull, data = data_nor_nor, ...)
+      
+      if(!is.null(deriv)){
+        
+        data_stan$x_deriv_T <- x_deriv_T
+        data_stan$x_deriv_quad <- x_deriv_quad
+        data_stan$d_deriv_T <- d_deriv_T
+        data_stan$d_deriv_quad <- d_deriv_quad
+        data_stan$p_deriv <- length(deriv_alpha_ind)
+        data_stan$q_deriv <- length(deriv_B_ind)
+        data_stan$deriv_alpha_ind <- as.array(deriv_alpha_ind)
+        data_stan$deriv_B_ind <- as.array(deriv_B_ind)
+        
+        res <- stan(model_code = nor_nor_jm_weibull_deriv, data = data_stan, ...)
+        
+      }else{
+        res <- stan(model_code = nor_nor_jm_weibull, data = data_stan, ...)
+      }
+      
     }
     
   }
   
   if(model %in% c("t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod3")){
-  if(bh %in% c("spline", "piecewise")){
-    data_t_t <- list(ntot = ntot,
-                     id = l_id, 
-                     y = y, 
-                     p = p,
-                     q = q,
-                     ngroup = ngroup, 
-                     x = x, 
-                     d = d,
-                     priors_long = priors_long,
-                     priors_surv = priors_surv,
-                     Q = Q,
-                     ntot_quad = ntot_quad,
-                     S = S,
-                     E = E,
-                     ncol_e = ncol_e, 
-                     e = e, 
-                     e_quad = e_quad,
-                     ncol_c = ncol_c, 
-                     c = c, 
-                     c_quad = c_quad,
-                     x_T = x_T,
-                     x_quad = x_quad,
-                     d_T = d_T,
-                     d_quad = d_quad,
-                     wt_quad = wt_quad
-    )
     
+  if(bh %in% c("spline", "piecewise")){
+    
+    data_stan$ncol_e <- ncol_e
+    data_stan$e <- e
+    data_stan$e_quad <- e_quad
+
     if(model == "t_t_mod1"){
-      res <- stan(model_code = t_t_jm_mod1, data = data_t_t, ...)
+      res <- stan(model_code = t_t_jm_mod1, data = data_stan, ...)
     } 
     if(model == "t_t_mod2"){
-      res <- stan(model_code =t_t_jm_mod2, data = data_t_t, ...)
+      res <- stan(model_code =t_t_jm_mod2, data = data_stan, ...)
     }
     if(model == "t_t_mod3"){
-      res <- stan(model_code = t_t_jm_mod3, data = data_t_t, ...)
+      res <- stan(model_code = t_t_jm_mod3, data = data_stan, ...)
     }
   }else if(bh == "weibull"){
-    data_t_t <- list(ntot = ntot,
-                     id = l_id, 
-                     y = y, 
-                     p = p,
-                     q = q,
-                     ngroup = ngroup, 
-                     x = x, 
-                     d = d,
-                     priors_long = priors_long,
-                     priors_surv = priors_surv,
-                     Q = Q,
-                     ntot_quad = ntot_quad,
-                     S = S,
-                     E = E,
-                     #ncol_e = ncol_e, 
-                     #e = e, 
-                     #e_quad = e_quad,
-                     ncol_c = ncol_c, 
-                     c = c, 
-                     c_quad = c_quad,
-                     x_T = x_T,
-                     x_quad = x_quad,
-                     d_T = d_T,
-                     d_quad = d_quad,
-                     wt_quad = wt_quad,
-                     t_quad = t_quad
-                     )
     
     if(model == "t_t_mod1"){
-      res <- stan(model_code = t_t_jm_mod1_weibull, data = data_t_t, ...)
+      res <- stan(model_code = t_t_jm_mod1_weibull, data = data_stan, ...)
     } 
     if(model == "t_t_mod2"){
-      res <- stan(model_code =t_t_jm_mod2_weibull, data = data_t_t, ...)
+      res <- stan(model_code =t_t_jm_mod2_weibull, data = data_stan, ...)
     }
     if(model == "t_t_mod3"){
-      res <- stan(model_code = t_t_jm_mod3_weibull, data = data_t_t, ...)
+      res <- stan(model_code = t_t_jm_mod3_weibull, data = data_stan, ...)
     }
     if(model == "nor_t_mod3"){
-      res <- stan(model_code = nor_t_jm_mod3_weibull, data = data_t_t, ...)
+      res <- stan(model_code = nor_t_jm_mod3_weibull, data = data_stan, ...)
     }
   }
     
  }
 
-  
   if(model == "t_t_tv"){
     a <- splines::ns(data_long[, spline_tv[[1]]], df = (spline_tv[[2]] + 1))
     ncol_a <- ncol(a)
     attributes(a) <- NULL
     a <- matrix(a, ncol = ncol_a)
-    s <- ncol_a
-    
+
   if(bh %in% c("spline", "piecewise")){
-    data_t_t_tv <- list(ntot = ntot,
-                        id = l_id, 
-                        y = y, 
-                        p = p,
-                        q = q,
-                        ngroup = ngroup, 
-                        x = x, 
-                        d = d,
-                        priors_long = priors_long,
-                        priors_surv = priors_surv,
-                        Q = Q,
-                        ntot_quad = ntot_quad,
-                        S = S,
-                        E = E,
-                        ncol_e = ncol_e, 
-                        e = e, 
-                        e_quad = e_quad,
-                        ncol_c = ncol_c, 
-                        c = c, 
-                        c_quad = c_quad,
-                        x_T = x_T,
-                        x_quad = x_quad,
-                        d_T = d_T,
-                        d_quad = d_quad,
-                        wt_quad = wt_quad,
-                        s = s,
-                        a = a
-    )
     
-    res <- stan(model_code = t_t_tv_jm, data = data_t_t_tv, ...)
+    data_stan$ncol_e <- ncol_e
+    data_stan$e <- e
+    data_stan$e_quad <- e_quad
+    data_stan$ncol_a <- ncol_a
+    data_stan$a <- a
+    
+    res <- stan(model_code = t_t_tv_jm, data = data_stan, ...)
     
   }else if(bh == "weibull"){
-    data_t_t_tv <- list(ntot = ntot,
-                        id = l_id, 
-                        y = y, 
-                        p = p,
-                        q = q,
-                        ngroup = ngroup, 
-                        x = x, 
-                        d = d,
-                        priors_long = priors_long,
-                        priors_surv = priors_surv,
-                        Q = Q,
-                        ntot_quad = ntot_quad,
-                        S = S,
-                        E = E,
-                        #ncol_e = ncol_e, 
-                        #e = e, 
-                        #e_quad = e_quad,
-                        ncol_c = ncol_c, 
-                        c = c, 
-                        c_quad = c_quad,
-                        x_T = x_T,
-                        x_quad = x_quad,
-                        d_T = d_T,
-                        d_quad = d_quad,
-                        wt_quad = wt_quad,
-                        t_quad = t_quad,
-                        s = s,
-                        a = a
-                        )
-    
-    res <- stan(model_code = t_t_tv_jm_weibull, data = data_t_t_tv, ...)
-    
+    data_stan$ncol_a <- ncol_a
+    data_stan$a <- a
+    res <- stan(model_code = t_t_tv_jm_weibull, data = data_stan, ...)
   }
     
   }
@@ -498,6 +402,7 @@ fit_jm <- function(fixed_long,
               spline_tv = spline_tv, 
               Q = Q, 
               priors = priors,
+              deriv = deriv,
               res = res
               )
               

@@ -140,7 +140,7 @@
                     p = ncol(x),
                     q = ncol(id_dmat) - 1,
                     ngroup = length(unique(data[, id])),
-                    s = ncol(a),
+                    ncol_a = ncol_a,
                     a = a,
                     priors = unlist(priors)
                     )

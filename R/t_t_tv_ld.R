@@ -9,8 +9,8 @@ int<lower = 1> q;           // number of covariates in the random effects design
 int<lower = 1> ngroup;      // number of subjects/clusters/groups
 matrix[ntot, p] x;          // fixed effects design matrix
 matrix[ntot, q * ngroup] d; // random effects design matrix, block diagonal
-int<lower = 1> s;           // number of columns of a matrix
-matrix[ntot, s] a;          // spline matrix
+int<lower = 1> ncol_a;           // number of columns of a matrix
+matrix[ntot, ncol_a] a;          // spline matrix
 vector[5] priors;           // prior hyperparameters, order: theta, omega, sigma_bstar, sigmaZ, beta
 }
 
@@ -35,7 +35,7 @@ vector<lower = 0>[ngroup] V;
 real<lower = 0.01, upper = 0.5> phi_inv;
 real<lower = 0> sigma_Zstar;      // scale parameter of measurement error
 vector<lower = 0>[ntot] W;
-vector[s] beta;
+vector[ncol_a] beta;
 real<lower = 0.01, upper = 0.5> delta0_inv;
 }
 

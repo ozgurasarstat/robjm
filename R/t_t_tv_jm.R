@@ -11,8 +11,8 @@ int<lower = 1> ngroup;      // number of subjects/clusters/groups
 matrix[ntot, p] x;          // fixed effects design matrix
 matrix[ntot, q * ngroup] d; // random effects design matrix, block diagonal
 vector[5] priors_long; // prior hyperparameters, order: alpha, Omega, sigma_B, sigma_Z, beta
-int<lower = 1> s;           // number of columns of a matrix
-matrix[ntot, s] a;          // spline matrix for tv dof
+int<lower = 1> ncol_a;           // number of columns of a matrix
+matrix[ntot, ncol_a] a;          // spline matrix for tv dof
 
 //quadratures
 int<lower = 1> Q; //number of Gauss-Legendre quadratures
@@ -52,7 +52,7 @@ vector<lower = 0>[q] sigma_B; // scale parameters for random effects
 real<lower = 0> sigma_Z;      // scale parameter of measurement error
 real<lower = 0.01, upper = 0.5> phi_inv; // inverse d.o.f. for B
 real<lower = 0.01, upper = 0.5> delta0_inv;
-vector[s] beta;
+vector[ncol_a] beta;
 vector<lower = 0>[ngroup] V;
 vector<lower = 0>[ntot] W;
 
