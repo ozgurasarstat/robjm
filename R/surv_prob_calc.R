@@ -17,7 +17,8 @@
 
  surv_prob_calc <- function(t, ft_batch_data_quad_i, c_quad_i, 
                             timeVar, log_lambda, log_nu, omega, 
-                            eta, alpha, B, wt, pt, Q, bh, deriv){
+                            eta, alpha, B, wt, pt, Q, bh, deriv,
+                            fixed_long, random_long){
    
      t_quad <- 0.5 * t * (1 + pt)
      

@@ -303,7 +303,9 @@ predSurv_jm_supp <- function(object = object,
                                      pt = pt,
                                      Q = Q,
                                      bh = "weibull",
-                                     deriv = deriv)
+                                     deriv = deriv,
+                                     fixed_long = object$fixed_long,
+                                     random_long = object$random_long)
         prob_lower <- surv_prob_calc(t = ft_i[1], 
                                      ft_batch_data_quad_i = ft_batch_data_quad_i,
                                      c_quad_i = c_quad_i,
@@ -318,7 +320,9 @@ predSurv_jm_supp <- function(object = object,
                                      pt = pt,
                                      Q = Q,
                                      bh = "weibull",
-                                     deriv = deriv)
+                                     deriv = deriv,
+                                     fixed_long = object$fixed_long,
+                                     random_long = object$random_long)
         ft_probs_i_k <- c(ft_probs_i_k, prob_upper/prob_lower)
       }
       ft_probs_i[[j]] <- ft_probs_i_k
