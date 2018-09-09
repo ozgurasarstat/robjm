@@ -18,6 +18,7 @@ predSurv_jm_supp <- function(object = object,
   fixed_surv <- object$fixed_surv
   random_long <- object$random_long
   timeVar <- object$timeVar
+  deriv <- object$deriv
   
   ## extract the chains
   alpha      <- rstan::extract(object$res)$alpha
@@ -103,12 +104,39 @@ predSurv_jm_supp <- function(object = object,
   id_dmat_list_quad <- lapply(split(id_dmat_quad[, -1], id_dmat_quad[, 1]), as.matrix)
   d_quad <- do.call(magic::adiag, id_dmat_list_quad)
   
+  ## prepare x and d matrices for the derivative
+  if(!is.null(deriv)){
+    
+    deriv_fixed_formula  <- deriv$deriv_fixed_formula
+    deriv_alpha_ind      <- deriv$deriv_alpha_ind
+    deriv_random_formula <- deriv$deriv_random_formula
+    deriv_B_ind          <- deriv$deriv_B_ind
+    
+    x_deriv_T <- model.matrix(deriv_fixed_formula, batch_data_base)
+    x_deriv_quad <- model.matrix(deriv_fixed_formula, batch_data_quad)
+    
+    dmat_deriv_T <- model.matrix(deriv_random_formula, batch_data_base)
+    id_dmat_deriv_T <- data.frame(s_id, dmat_deriv_T)
+    id_dmat_deriv_list_T <- lapply(split(id_dmat_deriv_T[, -1], id_dmat_deriv_T[, 1]), as.matrix)
+    d_deriv_T <- do.call(magic::adiag, id_dmat_deriv_list_T)
+    
+    dmat_deriv_quad <- model.matrix(deriv_random_formula, batch_data_quad)
+    id_dmat_deriv_quad <- data.frame(rep(s_id, each = Q), batch_data_quad)
+    id_dmat_deriv_list_quad <- lapply(split(id_dmat_deriv_quad[, -1], id_dmat_deriv_quad[, 1]), as.matrix)
+    d_deriv_quad <- do.call(magic::adiag, id_dmat_deriv_list_quad)
+    
+  }
+  
   ## extend the weights for quadrature approx.
   wt_quad <- rep(wt, ngroup)
   
   if(model == "nor_nor" & bh == "weibull"){
     
-    mod <- rstan::stan_model(model_code = new_rand_eff_nor_nor_jm_weibull, auto_write = TRUE)
+    if(is.null(deriv)){
+      mod <- rstan::stan_model(model_code = new_rand_eff_nor_nor_jm_weibull, auto_write = TRUE)
+    }else{
+      mod <- rstan::stan_model(model_code = new_rand_eff_nor_nor_jm_weibull_deriv, auto_write = TRUE)
+    }
     
     data_nor_nor <- list(ntot = ntot,
                          id = l_id, 
@@ -128,8 +156,19 @@ predSurv_jm_supp <- function(object = object,
                          x_quad = x_quad,
                          d_T = d_T,
                          d_quad = d_quad,
-                         wt_quad = wt_quad
-                         )
+                         wt_quad = wt_quad)
+    
+    if(!is.null(deriv)){
+      data_nor_nor$x_deriv_T <- x_deriv_T
+      data_nor_nor$x_deriv_quad <- x_deriv_quad
+      data_nor_nor$d_deriv_T <- d_deriv_T
+      data_nor_nor$d_deriv_quad <- d_deriv_quad
+      data_nor_nor$p_deriv <- length(deriv_alpha_ind)
+      data_nor_nor$q_deriv <- length(deriv_B_ind)
+      data_nor_nor$deriv_alpha_ind <- as.array(deriv_alpha_ind)
+      data_nor_nor$deriv_B_ind <- as.array(deriv_B_ind)
+    }
+    
     B_sampled <- list()
     
     for(i in 1:M){

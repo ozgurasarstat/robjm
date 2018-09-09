@@ -404,7 +404,7 @@ fit_jm <- function(fixed_long,
               priors = priors,
               deriv = deriv,
               res = res
-              )
+              )p
               
   return(out)  
   
