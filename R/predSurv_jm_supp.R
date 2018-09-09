@@ -29,7 +29,10 @@ predSurv_jm_supp <- function(object = object,
   log_lambda <- matrix(rstan::extract(object$res)$log_lambda)
   log_nu     <- matrix(rstan::extract(object$res)$log_nu)
   omega      <- rstan::extract(object$res)$omega
-  eta        <- matrix(rstan::extract(object$res)$eta)
+  eta        <- rstan::extract(object$res)$eta
+  if(class(eta) == "array"){
+    eta <- matrix(eta)
+  }
   
   if(object$model == "t_t_mod3"){
     phi   <- matrix(rstan::extract(object$res)$phi)
@@ -121,7 +124,7 @@ predSurv_jm_supp <- function(object = object,
     d_deriv_T <- do.call(magic::adiag, id_dmat_deriv_list_T)
     
     dmat_deriv_quad <- model.matrix(deriv_random_formula, batch_data_quad)
-    id_dmat_deriv_quad <- data.frame(rep(s_id, each = Q), batch_data_quad)
+    id_dmat_deriv_quad <- data.frame(rep(s_id, each = Q), dmat_deriv_quad)
     id_dmat_deriv_list_quad <- lapply(split(id_dmat_deriv_quad[, -1], id_dmat_deriv_quad[, 1]), as.matrix)
     d_deriv_quad <- do.call(magic::adiag, id_dmat_deriv_list_quad)
     
@@ -178,7 +181,7 @@ predSurv_jm_supp <- function(object = object,
       data_nor_nor$log_lambda <- log_lambda[i, ]
       data_nor_nor$log_nu     <- log_nu[i, ]
       data_nor_nor$omega      <- as.array(omega[i, ])
-      data_nor_nor$eta        <- eta[i, ]
+      data_nor_nor$eta        <- as.array(eta[i, ])
       
       B_res <- rstan::sampling(mod, 
                         data = data_nor_nor, 
@@ -221,14 +224,14 @@ predSurv_jm_supp <- function(object = object,
                           wt_quad = wt_quad)
     
     if(!is.null(deriv)){
-      data_nor_nor$x_deriv_T <- x_deriv_T
-      data_nor_nor$x_deriv_quad <- x_deriv_quad
-      data_nor_nor$d_deriv_T <- d_deriv_T
-      data_nor_nor$d_deriv_quad <- d_deriv_quad
-      data_nor_nor$p_deriv <- length(deriv_alpha_ind)
-      data_nor_nor$q_deriv <- length(deriv_B_ind)
-      data_nor_nor$deriv_alpha_ind <- as.array(deriv_alpha_ind)
-      data_nor_nor$deriv_B_ind <- as.array(deriv_B_ind)
+      data_t_t_mod3$x_deriv_T <- x_deriv_T
+      data_t_t_mod3$x_deriv_quad <- x_deriv_quad
+      data_t_t_mod3$d_deriv_T <- d_deriv_T
+      data_t_t_mod3$d_deriv_quad <- d_deriv_quad
+      data_t_t_mod3$p_deriv <- length(deriv_alpha_ind)
+      data_t_t_mod3$q_deriv <- length(deriv_B_ind)
+      data_t_t_mod3$deriv_alpha_ind <- as.array(deriv_alpha_ind)
+      data_t_t_mod3$deriv_B_ind <- as.array(deriv_B_ind)
     }
     
     B_sampled <- list()
@@ -240,7 +243,7 @@ predSurv_jm_supp <- function(object = object,
       data_t_t_mod3$log_lambda <- log_lambda[i, ]
       data_t_t_mod3$log_nu     <- log_nu[i, ]
       data_t_t_mod3$omega      <- as.array(omega[i, ])
-      data_t_t_mod3$eta        <- eta[i, ]
+      data_t_t_mod3$eta        <- as.array(eta[i, ])
       data_t_t_mod3$phi        <- phi[i, ]
       data_t_t_mod3$delta      <- delta[i, ]
       
@@ -266,8 +269,8 @@ predSurv_jm_supp <- function(object = object,
     ft[[i]] <- seq(S[i], (S[i] + forecast$h), length.out = forecast$n)
   }
   
-  x_base <- x[!duplicated(l_id), , drop = FALSE]
-  d_base <- dmat[!duplicated(l_id), , drop = FALSE]
+  ft_batch_data_base <- batch_data[!duplicated(l_id), ]
+  ft_batch_data_quad <- ft_batch_data_base[rep(1:ngroup, each = Q), ]
   
   ft_probs <- list()
   
@@ -278,15 +281,17 @@ predSurv_jm_supp <- function(object = object,
     ft_probs_i <- list()
     ft_probs_i[[1]] <- rep(1, M)
     
+    ft_batch_data_quad_i <- ft_batch_data_quad[((i-1)*Q+1):(i*Q), , drop = FALSE]
+    c_quad_i <- c_quad[((i-1)*Q+1):(i*Q), , drop = FALSE]
+    
     for(j in 2:forecast$n){
       
       ft_probs_i_k <- c()
       
       for(k in 1:M){
-        prob_upper <- surv_prob_calc(t = ft_i[j], 
-                                     x = x_base[i, , drop = FALSE], 
-                                     d = d_base[i, , drop = FALSE], 
-                                     c = c[i, , drop = FALSE],
+        prob_upper <- surv_prob_calc(t = ft_i[j],
+                                     ft_batch_data_quad_i = ft_batch_data_quad_i,
+                                     c_quad_i = c_quad_i,
                                      timeVar = timeVar, 
                                      log_lambda = log_lambda[k, ],
                                      log_nu = log_nu[k, ],
@@ -297,11 +302,11 @@ predSurv_jm_supp <- function(object = object,
                                      wt = wt, 
                                      pt = pt,
                                      Q = Q,
-                                     bh = "weibull")
+                                     bh = "weibull",
+                                     deriv = deriv)
         prob_lower <- surv_prob_calc(t = ft_i[1], 
-                                     x = x_base[i, , drop = FALSE], 
-                                     d = d_base[i, , drop = FALSE], 
-                                     c = c[i, , drop = FALSE],
+                                     ft_batch_data_quad_i = ft_batch_data_quad_i,
+                                     c_quad_i = c_quad_i,
                                      timeVar = timeVar, 
                                      log_lambda = log_lambda[k, ],
                                      log_nu = log_nu[k, ],
@@ -312,7 +317,8 @@ predSurv_jm_supp <- function(object = object,
                                      wt = wt, 
                                      pt = pt,
                                      Q = Q,
-                                     bh = "weibull")
+                                     bh = "weibull",
+                                     deriv = deriv)
         ft_probs_i_k <- c(ft_probs_i_k, prob_upper/prob_lower)
       }
       ft_probs_i[[j]] <- ft_probs_i_k

@@ -11,4 +11,4 @@ TO DO:
 - prediction for the models other than nor and mod3
 - prediction for longitudinal data
 - plot, summary, print etc
- 
+- develop general function for ld and jm, e.g. a function that is for nor, mod1, mod2, mod3, tv as a sinlge file 

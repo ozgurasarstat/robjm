@@ -15,26 +15,38 @@
 #' @param wt vector of weights
 #' @param pt vector of abscissa
 
- surv_prob_calc <- function(t, x, d, c, timeVar, log_lambda, log_nu, omega, 
-                            eta, alpha, B, wt, pt, Q, bh){
+ surv_prob_calc <- function(t, ft_batch_data_quad_i, c_quad_i, 
+                            timeVar, log_lambda, log_nu, omega, 
+                            eta, alpha, B, wt, pt, Q, bh, deriv){
    
-   t_quad <- 0.5 * t * (1 + pt)
-   
-   c_quad <- apply(c, 2, function(i) rep(i, each = Q))
-   
-   #x_base <- x[1, , drop = FALSE]
-   x_quad <- x[rep(1, Q), ]
-   x_quad[, timeVar] <- t_quad
-   
-   #d_base <- d[1, , drop = FALSE]
-   d_quad <- d[rep(1, Q), ]
-   d_quad[, timeVar] <- t_quad
-   
-   h <- exp(log_lambda + log_nu + (exp(log_nu) - 1) * log(t_quad) + 
-            c_quad %*% omega + 
-            eta * (x_quad %*% alpha + d_quad %*% B))
-   
-   out <- exp(- 0.5 * t * sum(wt * h))
-   return(out)
+     t_quad <- 0.5 * t * (1 + pt)
+     
+     ft_batch_data_quad_i[, timeVar] <- t_quad
+     
+     x_quad <- model.matrix(fixed_long, ft_batch_data_quad_i)
+     d_quad <- model.matrix(random_long, ft_batch_data_quad_i)
+     
+     if(!is.null(deriv)){
+       x_quad_deriv <- model.matrix(deriv$deriv_fixed_formula, ft_batch_data_quad_i)
+       d_quad_deriv <- model.matrix(deriv$deriv_random_formula, ft_batch_data_quad_i)
+       
+       alpha_deriv <- alpha[deriv$deriv_alpha_ind]
+       B_deriv     <- B[deriv$deriv_B_ind]
+     }
+     
+     if(is.null(deriv)){
+       h <- exp(log_lambda + log_nu + (exp(log_nu) - 1) * log(t_quad) + 
+                  c_quad_i %*% omega + 
+                  eta * (x_quad %*% alpha + d_quad %*% B))       
+     }else{
+       h <- exp(log_lambda + log_nu + (exp(log_nu) - 1) * log(t_quad) + 
+                  c_quad_i %*% omega + 
+                  eta[1] * (x_quad %*% alpha + d_quad %*% B) + 
+                  eta[2] * (x_quad_deriv %*% alpha_deriv + d_quad_deriv %*% B_deriv))
+     }
+
+     
+     out <- exp(- 0.5 * t * sum(wt * h))
+     return(out)
  }
  

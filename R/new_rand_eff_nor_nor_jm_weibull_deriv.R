@@ -43,7 +43,7 @@ real sigma_Z;
 real log_lambda;
 real log_nu;
 vector[ncol_c] omega;
-vector eta;
+vector[2] eta;
 
 }
 
