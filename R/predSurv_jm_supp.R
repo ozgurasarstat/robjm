@@ -142,8 +142,8 @@ predSurv_jm_supp <- function(object = object,
     }
     
     data_nor_nor <- list(ntot = ntot,
-                         id = l_id, 
-                         y = y, 
+                         id = as.array(l_id), 
+                         y = as.array(y), 
                          p = p,
                          q = q,
                          ngroup = ngroup, 
@@ -204,8 +204,8 @@ predSurv_jm_supp <- function(object = object,
     }
     
     data_t_t_mod3 <- list(ntot = ntot,
-                          id = l_id, 
-                          y = y, 
+                          id = as.array(l_id), 
+                          y = as.array(y), 
                           p = p,
                           q = q,
                           ngroup = ngroup, 

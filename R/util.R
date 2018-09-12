@@ -39,26 +39,35 @@ prob_summary <- function(x){
 
 #' Function to combine prediction results
 #' @param x a list
-combine_pred <- function(x){
+combine_pred <- function(x, nsubj = nsubj){
 
-  iterations <- length(x)
-  
-  samples <- c()
-  output  <- c()
-  
-  for(i in 1:iterations){
+  if(nsubj == 1){
+    samples <- fore_nor_nor[[1]]$ft_probs
+    output  <- fore_nor_nor[[1]]$ft_table
+  }else{
+    iterations <- length(x)
     
-    iterations_nsubj <- length(x[[i]])
+    idlist  <- c()
+    samples <- c()
+    output  <- c()
     
-    for(j in 1:iterations_nsubj){
-    samples <- cbind(samples, x[[i]][[1]][[j]])
-    }
-
-    output  <- rbind(output, x[[i]][[2]])
+    for(i in 1:iterations){
       
+      iterations_nsubj <- length(x[[i]])
+      
+      for(j in 1:iterations_nsubj){
+        samples <- cbind(samples, x[[i]][[1]][[j]])
+      }
+      
+      idlist <- c(idlist, names(x[[i]][[1]]))
+      output  <- rbind(output, x[[i]][[2]])
+      
+    }
+    
+    samples <- lapply(seq_len(ncol(samples)), function(i) samples[,i])
+    names(samples) <- idlist  
   }
   
-  samples <- lapply(seq_len(ncol(samples)), function(i) samples[,i])
   return(list(samples = samples, output = output))
 
 }

@@ -107,9 +107,9 @@ predSurv_jm <- function(object,
     stopCluster(cl)
       
   }
-  
-  #out <- do.call(rbind, pred_out)
-  out <- combine_pred(pred_out)
+
+  ## combine results  
+  out <- combine_pred(pred_out, nsubj = nsubj)
   return(out)
   
 }
