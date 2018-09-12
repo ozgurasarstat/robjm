@@ -108,7 +108,8 @@ predSurv_jm <- function(object,
       
   }
   
-  out <- do.call(rbind, pred_out)
+  #out <- do.call(rbind, pred_out)
+  out <- combine_pred(pred_out)
   return(out)
   
 }

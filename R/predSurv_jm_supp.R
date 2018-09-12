@@ -329,21 +329,24 @@ predSurv_jm_supp <- function(object = object,
     }
     
     ft_probs[[i]] <- ft_probs_i 
+    names(ft_probs)[[i]] <- as.character(s_id_orig[i])
     
   }
   
-  out <- list()
+  ft_table <- list()
   for(i in 1:ngroup){
     ft_i <- ft[[i]]
-    out_i <- data.frame(id = rep(s_id_orig[i], forecast$n),
+    ft_table_i <- data.frame(id = rep(s_id_orig[i], forecast$n),
                         stime = rep(S[i], forecast$n),
                         event = rep(E[i], forecast$n),
                         time = ft_i, 
                         do.call(rbind, lapply(ft_probs[[i]], prob_summary)))
-    names(out_i)[5:8] <- c("2.5%", "mean", "median", "97.5%")
-    out[[i]] <- out_i
+    names(ft_table_i)[5:8] <- c("2.5%", "mean", "median", "97.5%")
+    ft_table[[i]] <- ft_table_i
   }
-  out <- do.call(rbind, out)
+  ft_table <- do.call(rbind, ft_table)
+  
+  out <- list(ft_probs = ft_probs, ft_table = ft_table)
   return(out)
   
 }

@@ -12,3 +12,4 @@ TO DO:
 - prediction for longitudinal data
 - plot, summary, print etc
 - develop general function for ld and jm, e.g. a function that is for nor, mod1, mod2, mod3, tv as a sinlge file 
+-put useful warnings: egif prob is obtained as 0/0 nan is produced

@@ -36,3 +36,29 @@ prob_summary <- function(x){
   out <- c(quants[1], mean(x), median(x), quants[2])
   return(out)
 }
+
+#' Function to combine prediction results
+#' @param x a list
+combine_pred <- function(x){
+
+  iterations <- length(x)
+  
+  samples <- c()
+  output  <- c()
+  
+  for(i in 1:iterations){
+    
+    iterations_nsubj <- length(x[[i]])
+    
+    for(j in 1:iterations_nsubj){
+    samples <- cbind(samples, x[[i]][[1]][[j]])
+    }
+
+    output  <- rbind(output, x[[i]][[2]])
+      
+  }
+  
+  samples <- lapply(seq_len(ncol(samples)), function(i) samples[,i])
+  return(list(samples = samples, output = output))
+
+}
