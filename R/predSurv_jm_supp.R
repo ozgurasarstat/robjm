@@ -181,7 +181,11 @@ predSurv_jm_supp <- function(object = object,
       data_nor_nor$log_lambda <- log_lambda[i, ]
       data_nor_nor$log_nu     <- log_nu[i, ]
       data_nor_nor$omega      <- as.array(omega[i, ])
-      data_nor_nor$eta        <- as.array(eta[i, ])
+      if(ncol(eta) == 1){
+        data_nor_nor$eta      <- eta[i, ]
+      }else{
+        data_nor_nor$eta      <- as.array(eta[i, ])
+      }
       
       B_res <- rstan::sampling(mod, 
                         data = data_nor_nor, 
@@ -243,7 +247,11 @@ predSurv_jm_supp <- function(object = object,
       data_t_t_mod3$log_lambda <- log_lambda[i, ]
       data_t_t_mod3$log_nu     <- log_nu[i, ]
       data_t_t_mod3$omega      <- as.array(omega[i, ])
-      data_t_t_mod3$eta        <- as.array(eta[i, ])
+      if(ncol(eta) == 1){
+        data_t_t_mod3$eta      <- eta[i, ]
+      }else{
+        data_t_t_mod3$eta      <- as.array(eta[i, ])
+      }
       data_t_t_mod3$phi        <- phi[i, ]
       data_t_t_mod3$delta      <- delta[i, ]
       
