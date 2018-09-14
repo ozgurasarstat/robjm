@@ -7,9 +7,15 @@ install_github("ozgurasarstat/robjm")
 library(robjm)  
 
 TO DO:
-- add rate of change to the survival model
+
+- add rate of change to the survival model other than nor nor and mod3
+
 - prediction for the models other than nor and mod3
+
 - prediction for longitudinal data
+
 - plot, summary, print etc
+
 - develop general function for ld and jm, e.g. a function that is for nor, mod1, mod2, mod3, tv as a sinlge file 
--put useful warnings: egif prob is obtained as 0/0 nan is produced
+
+- add last.time option
