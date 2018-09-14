@@ -331,7 +331,8 @@ predSurv_jm_supp <- function(object = object,
                                      deriv = deriv,
                                      fixed_long = object$fixed_long,
                                      random_long = object$random_long)
-        ft_probs_i_k <- c(ft_probs_i_k, prob_upper/prob_lower)
+        #ft_probs_i_k <- c(ft_probs_i_k, prob_upper/prob_lower)
+        ft_probs_i_k <- c(ft_probs_i_k, exp(prob_upper-prob_lower))
       }
       ft_probs_i[[j]] <- ft_probs_i_k
     }

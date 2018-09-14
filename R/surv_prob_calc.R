@@ -47,7 +47,8 @@
      }
 
      
-     out <- exp(- 0.5 * t * sum(wt * h))
+     #out <- exp(- 0.5 * t * sum(wt * h))
+     out <- - 0.5 * t * sum(wt * h)
      return(out)
  }
  

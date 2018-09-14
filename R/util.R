@@ -41,10 +41,10 @@ prob_summary <- function(x){
 #' @param x a list
 combine_pred <- function(x, nsubj = nsubj){
 
-  if(nsubj == 1){
-    samples <- fore_nor_nor[[1]]$ft_probs
-    output  <- fore_nor_nor[[1]]$ft_table
-  }else{
+   if(nsubj == 1){
+     samples <- fore_nor_nor[[1]]$ft_probs
+     output  <- fore_nor_nor[[1]]$ft_table
+   }else{
     iterations <- length(x)
     
     idlist  <- c()
@@ -56,7 +56,13 @@ combine_pred <- function(x, nsubj = nsubj){
       iterations_nsubj <- length(x[[i]])
       
       for(j in 1:iterations_nsubj){
-        samples <- cbind(samples, x[[i]][[1]][[j]])
+        
+        if(length(x[[i]][[1]]) == 1){
+          samples <- cbind(samples, x[[i]][[1]])
+        }else{
+          samples <- cbind(samples, x[[i]][[1]][[j]])
+        }
+        
       }
       
       idlist <- c(idlist, names(x[[i]][[1]]))
