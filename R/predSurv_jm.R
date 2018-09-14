@@ -10,6 +10,7 @@
 
 predSurv_jm <- function(object, 
                         newdata, 
+                        last_time = "surv_time", 
                         forecast = list(h = 5, n = 5), 
                         B_control = list(iter = 400, 
                                          warmup = 200, 
@@ -72,7 +73,8 @@ predSurv_jm <- function(object,
                                         B_control = B_control, 
                                         Q = Q,
                                         wt = wt,
-                                        pt = pt)
+                                        pt = pt,
+                                        last_time = last_time)
       
     }#for(i in 1:iterations){
     
@@ -98,7 +100,8 @@ predSurv_jm <- function(object,
                                  B_control = B_control, 
                                  Q = Q,
                                  wt = wt,
-                                 pt = pt
+                                 pt = pt,
+                                 last_time = last_time
                                  )
       return(pred_i)
       
@@ -109,7 +112,7 @@ predSurv_jm <- function(object,
   }
 
   ## combine results  
-  out <- combine_pred(pred_out, nsubj = nsubj)
+  out <- combine_pred(pred_out)
   return(out)
   
 }

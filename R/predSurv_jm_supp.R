@@ -1,10 +1,11 @@
-predSurv_jm_supp <- function(object = object, 
+predSurv_jm_supp <- function(object, 
                              batch_data, 
                              forecast, 
                              B_control, 
                              Q,
                              wt,
-                             pt){
+                             pt,
+                             last_time){
   
   ## make sure that first row for everyone is prob of 1 at stime
   forecast$n <- forecast$n + 1
@@ -70,9 +71,13 @@ predSurv_jm_supp <- function(object = object,
   q <- ncol(id_dmat) - 1
   
   ## extract survival times and event indicator
-  mf_surv <- model.frame(fixed_surv, data_surv)
-  S <- mf_surv[, 1][, 1]
-  E <- mf_surv[, 1][, 2]
+  if(last_time == "surv_time"){
+    mf_surv <- model.frame(fixed_surv, data_surv)
+    S <- mf_surv[, 1][, 1]
+    E <- mf_surv[, 1][, 2]    
+  }else{
+    S <- batch_data[!duplicated(batch_data[, id_long], fromLast = TRUE), last_time]
+  }
   
   ## calculate times for hazard function for quadrature approx
   t_quad <- 0.5 * rep(S, each = Q) * (1 + rep(pt, ngroup))
@@ -346,11 +351,11 @@ predSurv_jm_supp <- function(object = object,
   for(i in 1:ngroup){
     ft_i <- ft[[i]]
     ft_table_i <- data.frame(id = rep(s_id_orig[i], forecast$n),
-                        stime = rep(S[i], forecast$n),
-                        event = rep(E[i], forecast$n),
+                        #stime = rep(S[i], forecast$n),
+                        #event = rep(E[i], forecast$n),
                         time = ft_i, 
                         do.call(rbind, lapply(ft_probs[[i]], prob_summary)))
-    names(ft_table_i)[5:8] <- c("2.5%", "mean", "median", "97.5%")
+    names(ft_table_i)[3:6] <- c("2.5%", "mean", "median", "97.5%")
     ft_table[[i]] <- ft_table_i
   }
   ft_table <- do.call(rbind, ft_table)
