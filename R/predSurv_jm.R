@@ -112,7 +112,7 @@ predSurv_jm <- function(object,
   }
 
   ## combine results  
-  out <- combine_pred(pred_out)
+  out <- combine_pred(x = pred_out, iterations = iterations, nsubj = nsubj)
   return(out)
   
 }
