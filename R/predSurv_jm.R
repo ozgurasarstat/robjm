@@ -4,6 +4,7 @@
 #' 
 #' @param object A fitted object from \code{fit_jm}
 #' @param newdata A data frame for new patients in the longitudinal format
+#' @param last_time A character for indicating the survival time, surv_time, column name, or landmark
 #' @param forecast A numeric vector of three elements, 
 #'       first element is landmark time, second is horizon, third is increment
 #' 
@@ -11,6 +12,7 @@
 predSurv_jm <- function(object, 
                         newdata, 
                         last_time = "surv_time", 
+                        lm_time = NULL,
                         forecast = list(h = 5, n = 5), 
                         B_control = list(iter = 400, 
                                          warmup = 200, 

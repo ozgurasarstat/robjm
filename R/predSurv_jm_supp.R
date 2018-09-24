@@ -74,7 +74,14 @@ predSurv_jm_supp <- function(object,
   if(last_time == "surv_time"){
     mf_surv <- model.frame(fixed_surv, data_surv)
     S <- mf_surv[, 1][, 1]
-    E <- mf_surv[, 1][, 2]    
+    #E <- mf_surv[, 1][, 2]    
+  }else if(last_time == "landmark"){
+    if(is.null(lm_time)) stop("Define landmark time")
+    if(length(lm_time) == 1){
+      S <- rep(lm_time, ngroup)
+    }else{
+      S <- lm_time  
+    }
   }else{
     S <- batch_data[!duplicated(batch_data[, id_long], fromLast = TRUE), last_time]
   }
