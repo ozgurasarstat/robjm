@@ -76,7 +76,8 @@ predSurv_jm <- function(object,
                                         Q = Q,
                                         wt = wt,
                                         pt = pt,
-                                        last_time = last_time)
+                                        last_time = last_time,
+                                        lm_time = lm_time)
       
     }#for(i in 1:iterations){
     
@@ -103,7 +104,8 @@ predSurv_jm <- function(object,
                                  Q = Q,
                                  wt = wt,
                                  pt = pt,
-                                 last_time = last_time
+                                 last_time = last_time,
+                                 lm_time = lm_time
                                  )
       return(pred_i)
       

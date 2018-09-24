@@ -5,7 +5,8 @@ predSurv_jm_supp <- function(object,
                              Q,
                              wt,
                              pt,
-                             last_time){
+                             last_time,
+                             lm_time){
   
   ## make sure that first row for everyone is prob of 1 at stime
   forecast$n <- forecast$n + 1
