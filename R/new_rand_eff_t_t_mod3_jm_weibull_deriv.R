@@ -14,7 +14,7 @@ matrix[ntot, q * ngroup] d;
 int<lower = 1> Q;
 int<lower = 1> ntot_quad;
 
-vector[n<lower = 0.0>group] S; 
+vector<lower = 0.0>[ngroup] S; 
 int<lower = 1> ncol_c;           
 matrix[ngroup, ncol_c] c;         
 matrix[ntot_quad, ncol_c] c_quad; 
