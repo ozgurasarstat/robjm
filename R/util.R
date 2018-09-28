@@ -31,9 +31,9 @@ in_interval <- function(x, knots){
 
 #' Function to summarise the probability estimates
 #' @param x a numeric vector
-prob_summary <- function(x){
-  quants <- quantile(x, c(0.025, 0.975))
-  out <- c(quants[1], mean(x), median(x), quants[2])
+prob_summary <- function(x, probs = c(0.025, 0.5, 0.975)){
+  out <- c(mean(x), quantile(x, probs))
+  names(out) <- c("mean", paste0((probs*100), "%"))
   return(out)
 }
 
