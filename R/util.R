@@ -29,17 +29,23 @@ in_interval <- function(x, knots){
   
 }
 
+#'
+#'
+unique_length <- function(x){
+  x %>% unique %>% length
+}
+
 #' Function to summarise the probability estimates
 #' @param x a numeric vector
 prob_summary <- function(x, probs = c(0.025, 0.5, 0.975)){
   out <- c(mean(x), quantile(x, probs))
-  names(out) <- c("mean", paste0((probs*100), "%"))
+  #names(out) <- c("mean", paste0((probs*100), "%"))
   return(out)
 }
 
 #' Function to combine prediction results
 #' @param x a list
-combine_pred <- function(x, iterations, nsubj){
+combine_pred <- function(x, iterations, nsubj, chunk_sizes){
 
   if(nsubj == 1){
     samples <- x[[1]]$ft_probs
@@ -51,7 +57,7 @@ combine_pred <- function(x, iterations, nsubj){
     
     for(i in 1:iterations){
       
-      iterations_nsubj <- length(x[[i]])
+      iterations_nsubj <- chunk_sizes[i]#length(x[[i]])
       
       for(j in 1:iterations_nsubj){
         

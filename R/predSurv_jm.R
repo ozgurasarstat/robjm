@@ -21,6 +21,7 @@ predSurv_jm <- function(object,
                                          max_treedepth = 10),
                         batch_control = list(size = 100, 
                                              cores = 1),
+                        probs = c(0.025, 0.5, 0.975),
                         ...){
 
   ## be sure that B_control has 5 elements
@@ -62,6 +63,8 @@ predSurv_jm <- function(object,
   iterations <- max(chunk)
   
   newdata_batch <- split(newdata, chunk)
+  
+  chunk_sizes <- lapply(newdata_batch, function(x) unique_length(x[, object$id_long])) %>% unlist
 
   if(batch_control$cores == 1){
 
@@ -77,7 +80,8 @@ predSurv_jm <- function(object,
                                         wt = wt,
                                         pt = pt,
                                         last_time = last_time,
-                                        lm_time = lm_time)
+                                        lm_time = lm_time,
+                                        probs = probs)
       
     }#for(i in 1:iterations){
     
@@ -105,7 +109,8 @@ predSurv_jm <- function(object,
                                  wt = wt,
                                  pt = pt,
                                  last_time = last_time,
-                                 lm_time = lm_time
+                                 lm_time = lm_time,
+                                 probs = probs
                                  )
       return(pred_i)
       
@@ -116,7 +121,10 @@ predSurv_jm <- function(object,
   }
 
   ## combine results  
-  out <- combine_pred(x = pred_out, iterations = iterations, nsubj = nsubj)
+  out <- combine_pred(x = pred_out, 
+                      iterations = iterations, 
+                      nsubj = nsubj,
+                      chunk_sizes = chunk_sizes)
   return(out)
   
 }

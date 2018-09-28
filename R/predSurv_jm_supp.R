@@ -6,7 +6,8 @@ predSurv_jm_supp <- function(object,
                              wt,
                              pt,
                              last_time,
-                             lm_time){
+                             lm_time,
+                             probs){
   
   ## make sure that first row for everyone is prob of 1 at stime
   forecast$n <- forecast$n + 1
@@ -363,8 +364,8 @@ predSurv_jm_supp <- function(object,
                         #stime = rep(S[i], forecast$n),
                         #event = rep(E[i], forecast$n),
                         time = ft_i, 
-                        do.call(rbind, lapply(ft_probs[[i]], prob_summary)))
-    #names(ft_table_i)[3:6] <- c("2.5%", "mean", "median", "97.5%")
+                        do.call(rbind, lapply(ft_probs[[i]], prob_summary, probs = probs)))
+    names(ft_table_i)[3:ncol(ft_table_i)] <- c("mean", paste0((probs*100), "%"))
     ft_table[[i]] <- ft_table_i
   }
   
