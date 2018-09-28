@@ -61,7 +61,7 @@ combine_pred <- function(x, iterations, nsubj, chunk_sizes){
       
       for(j in 1:iterations_nsubj){
         
-        if(length(x[[i]][[1]]) == 1){
+        if(iterations_nsubj == 1){
           samples <- cbind(samples, x[[i]][[1]])
         }else{
           samples <- cbind(samples, x[[i]][[1]][[j]])
