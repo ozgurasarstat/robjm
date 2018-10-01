@@ -78,12 +78,19 @@ predSurv_jm_supp <- function(object,
     S <- mf_surv[, 1][, 1]
     #E <- mf_surv[, 1][, 2]    
   }else if(last_time == "landmark"){
+    
     if(is.null(lm_time)) stop("Define landmark time")
-    if(length(lm_time) == 1){
-      S <- rep(lm_time, ngroup)
-    }else{
-      S <- lm_time  
-    }
+    
+    mf_surv <- model.frame(fixed_surv, data_surv)
+    S <- mf_surv[, 1][, 1]
+    
+    if(S < lm_time) stop("Survival time(s) is(are) less than lm_time")
+    
+    S <- ifelse(S <= lm_time + forecast$h, S, lm_time + forecast$h)
+    
+    forecast$n <- 2
+    warning("n in forecast is set to 1")
+    
   }else{
     S <- batch_data[!duplicated(batch_data[, id_long], fromLast = TRUE), last_time]
   }
