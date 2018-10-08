@@ -80,7 +80,7 @@ predSurv_jm_supp <- function(object,
   }else if(last_time == "landmark"){
     
     if(is.null(lm_time)) stop("Define landmark time")
-    if(S < lm_time) stop("Survival time(s) is(are) less than lm_time")
+    #if(S < lm_time) stop("Survival time(s) is(are) less than lm_time")
     
     if(length(lm_time) == 1){
       S <- rep(lm_time, ngroup)
