@@ -9,8 +9,12 @@ int<lower = 1> p;           // number of covariates in the fixed effects design 
 int<lower = 1> q;           // number of covariates in the random effects design matrix
 int<lower = 1> ngroup;      // number of subjects/clusters/groups
 matrix[ntot, p] x;          // fixed effects design matrix
-matrix[ntot, q * ngroup] d; // random effects design matrix, block diagonal
+//matrix[ntot, q * ngroup] d; // random effects design matrix, block diagonal
+matrix[ntot, q] d;
 vector[4] priors_long; // prior hyperparameters, order: alpha, Omega, sigma_B, sigma_Z
+
+int d_ind[ngroup, 2];
+int Q_ind[ngroup, 2];
 
 //quadratures
 int<lower = 1> Q; //number of Gauss-Legendre quadratures
@@ -28,8 +32,10 @@ matrix[ntot_quad, ncol_c] c_quad; // extended survival sub-model fixed effects m
 
 matrix[ngroup, p] x_T;                // x matrix at survival times
 matrix[ntot_quad, p] x_quad;          // x matrix for quadrature approx 
-matrix[ngroup, q * ngroup] d_T;       // d matrix at survival times
-matrix[ntot_quad, q * ngroup] d_quad; // d matrix for qaudrature approx
+//matrix[ngroup, q * ngroup] d_T;       // d matrix at survival times
+matrix[ngroup, q] d_T;
+//matrix[ntot_quad, q * ngroup] d_quad; // d matrix for qaudrature approx
+matrix[ntot_quad, q] d_quad;
 
 vector[4] priors_surv;  //prior hyperparameters, order: log_lambda, log_nu, omega, eta
 
@@ -67,7 +73,10 @@ transformed parameters{
 cov_matrix[q] Sigma; 
 vector[ntot] linpred;
 matrix[ngroup, q] B;         
-matrix[ngroup * q, 1] Bmat;
+//matrix[ngroup * q, 1] Bmat;
+vector[ntot] d_B;
+vector[ngroup] d_T_B;
+vector[ntot_quad] d_quad_B;
 real<lower = 2, upper = 100> phi;
 real<lower = 2, upper = 100> delta;
 
@@ -91,26 +100,36 @@ for(i in 1:ngroup){
 B[i, ] = Bstar[i, ] * sqrt(V[i]);
 }
 
-Bmat = to_matrix(B', ngroup * q, 1);
-linpred = x * alpha + to_vector(d * Bmat);
+//Bmat = to_matrix(B', ngroup * q, 1);
+
+for(i in 1:ngroup){
+d_B[d_ind[i, 1]:d_ind[i, 2]] = to_vector(d[d_ind[i, 1]:d_ind[i, 2], ] * to_matrix(B[i, ], q, 1));
+d_T_B[i:i] = to_vector(d_T[i, ] * to_matrix(B[i, ], q, 1));
+d_quad_B[Q_ind[i, 1]:Q_ind[i, 2]] = to_vector(d_quad[Q_ind[i, 1]:Q_ind[i, 2], ] * to_matrix(B[i, ], q, 1));
+}
+
+//linpred = x * alpha + to_vector(d * Bmat);
+linpred = x * alpha + d_B;
 
 Sigma = quad_form_diag(Omega, sigma_B);
 
 //survival sub-model, lsd: log-survival density
 lsd_expr1_bh = log_lambda + log_nu + (exp(log_nu) - 1) * log(S); 
 lsd_expr1_fix = c * omega; 
-lsd_expr1_ystar = x_T * alpha + to_vector(d_T * Bmat);
+//lsd_expr1_ystar = x_T * alpha + to_vector(d_T * Bmat);
+lsd_expr1_ystar = x_T * alpha + d_T_B;
 
 lsd_expr1 = E .* (lsd_expr1_bh + lsd_expr1_fix + rep_vector(eta, ngroup) .* lsd_expr1_ystar);
 
 lsd_expr2_quad_bh = log_lambda + log_nu + (exp(log_nu) - 1) * log(t_quad); 
 lsd_expr2_quad_fix = c_quad * omega; 
-lsd_expr2_quad_ystar = x_quad * alpha + to_vector(d_quad * Bmat); 
+//lsd_expr2_quad_ystar = x_quad * alpha + to_vector(d_quad * Bmat); 
+lsd_expr2_quad_ystar = x_quad * alpha + d_quad_B; 
 
 lsd_expr2_quad = wt_quad .* exp(lsd_expr2_quad_bh + lsd_expr2_quad_fix + rep_vector(eta, ntot_quad) .* lsd_expr2_quad_ystar);
 
 for(i in 1:ngroup){
-lsd_expr2[i] = 0.5 * S[i] * sum(lsd_expr2_quad[((i-1)*Q+1):(i*Q)]);
+lsd_expr2[i] = 0.5 * S[i] * sum(lsd_expr2_quad[Q_ind[i, 1]:Q_ind[i, 2]]);
 }
 
 lsd = lsd_expr1 - lsd_expr2;
