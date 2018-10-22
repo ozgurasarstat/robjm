@@ -129,12 +129,15 @@ fit_jm <- function(fixed_long,
       }  
     }
   
+  ## number of subjects and repeated measures  
+  ngroup  <- data_long[, id_long] %>% unique %>% length
+  nrepeat <- data_long[, id_long] %>% table %>% as.numeric
   
   ## be sure that id is: 1, 2, 3, ...
-  data_long[, id_long] <- rep(1:length(unique(data_long[, id_long])), 
-                              as.numeric(table(data_long[, id_long])))
+  data_long[, id_long] <- rep(1:ngroup, nrepeat)
   l_id <- data_long[, id_long]
   
+  ## creat survival data
   data_surv[, id_surv] <- rep(1:nrow(data_surv))
   s_id <- data_surv[, id_surv]
   
@@ -143,19 +146,17 @@ fit_jm <- function(fixed_long,
   y <- model.frame(fixed_long, data_long)[, 1]
   
   ## create blok-diagonal random effects design matrix
-  dmat <- model.matrix(random_long, data_long)
-  id_dmat <- data.frame(l_id, dmat)
-  id_dmat_list <- lapply(split(id_dmat[, -1], id_dmat[, 1]), as.matrix)
-  d <- do.call(magic::adiag, id_dmat_list)
+  # dmat <- model.matrix(random_long, data_long)
+  # id_dmat <- data.frame(l_id, dmat)
+  # id_dmat_list <- lapply(split(id_dmat[, -1], id_dmat[, 1]), as.matrix)
+  # d <- do.call(magic::adiag, id_dmat_list)
+  d <- model.matrix(random_long, data_long)
   
   ## total number of observations in the longitudinal data
   ## number of covariates in the x and d matrices
   ntot <- nrow(x) 
   p <- ncol(x)
-  q <- ncol(id_dmat) - 1
-  
-  ## number of subjects
-  ngroup <- length(unique(l_id))
+  q <- ncol(d)#ncol(id_dmat) - 1
   
   ## Gauss - Legendre weights and abscissas
   gl_quad <- statmod::gauss.quad(Q)
@@ -214,15 +215,19 @@ fit_jm <- function(fixed_long,
   x_T    <- model.matrix(fixed_long, data_long_base)
   x_quad <- model.matrix(fixed_long, data_long_quad)
 
-  dmat_T <- model.matrix(random_long, data_long_base)
-  id_dmat_T <- data.frame(s_id, dmat_T)
-  id_dmat_list_T <- lapply(split(id_dmat_T[, -1], id_dmat_T[, 1]), as.matrix)
-  d_T <- do.call(magic::adiag, id_dmat_list_T)
+  # dmat_T <- model.matrix(random_long, data_long_base)
+  # id_dmat_T <- data.frame(s_id, dmat_T)
+  # id_dmat_list_T <- lapply(split(id_dmat_T[, -1], id_dmat_T[, 1]), as.matrix)
+  # d_T <- do.call(magic::adiag, id_dmat_list_T)
   
-  dmat_quad <- model.matrix(random_long, data_long_quad)
-  id_dmat_quad <- data.frame(rep(s_id, each = Q), dmat_quad)
-  id_dmat_list_quad <- lapply(split(id_dmat_quad[, -1], id_dmat_quad[, 1]), as.matrix)
-  d_quad <- do.call(magic::adiag, id_dmat_list_quad)
+  d_T <- model.matrix(random_long, data_long_base)
+  
+  # dmat_quad <- model.matrix(random_long, data_long_quad)
+  # id_dmat_quad <- data.frame(rep(s_id, each = Q), dmat_quad)
+  # id_dmat_list_quad <- lapply(split(id_dmat_quad[, -1], id_dmat_quad[, 1]), as.matrix)
+  # d_quad <- do.call(magic::adiag, id_dmat_list_quad)
+  
+  d_quad <- model.matrix(random_long, data_long_quad)
   
   ## prepare x and d matrices for the derivative
   if(!is.null(deriv)){
@@ -235,15 +240,19 @@ fit_jm <- function(fixed_long,
     x_deriv_T <- model.matrix(deriv_fixed_formula, data_long_base)
     x_deriv_quad <- model.matrix(deriv_fixed_formula, data_long_quad)
     
-    dmat_deriv_T <- model.matrix(deriv_random_formula, data_long_base)
-    id_dmat_deriv_T <- data.frame(s_id, dmat_deriv_T)
-    id_dmat_deriv_list_T <- lapply(split(id_dmat_deriv_T[, -1], id_dmat_deriv_T[, 1]), as.matrix)
-    d_deriv_T <- do.call(magic::adiag, id_dmat_deriv_list_T)
+    # dmat_deriv_T <- model.matrix(deriv_random_formula, data_long_base)
+    # id_dmat_deriv_T <- data.frame(s_id, dmat_deriv_T)
+    # id_dmat_deriv_list_T <- lapply(split(id_dmat_deriv_T[, -1], id_dmat_deriv_T[, 1]), as.matrix)
+    # d_deriv_T <- do.call(magic::adiag, id_dmat_deriv_list_T)
     
-    dmat_deriv_quad <- model.matrix(deriv_random_formula, data_long_quad)
-    id_dmat_deriv_quad <- data.frame(rep(s_id, each = Q), dmat_deriv_quad)
-    id_dmat_deriv_list_quad <- lapply(split(id_dmat_deriv_quad[, -1], id_dmat_deriv_quad[, 1]), as.matrix)
-    d_deriv_quad <- do.call(magic::adiag, id_dmat_deriv_list_quad)
+    d_deriv_T <- model.matrix(deriv_random_formula, data_long_base)
+    
+    # dmat_deriv_quad <- model.matrix(deriv_random_formula, data_long_quad)
+    # id_dmat_deriv_quad <- data.frame(rep(s_id, each = Q), dmat_deriv_quad)
+    # id_dmat_deriv_list_quad <- lapply(split(id_dmat_deriv_quad[, -1], id_dmat_deriv_quad[, 1]), as.matrix)
+    # d_deriv_quad <- do.call(magic::adiag, id_dmat_deriv_list_quad)
+    
+    d_deriv_quad <- model.matrix(deriv_random_formula, data_long_quad)
     
   }
   
@@ -267,6 +276,13 @@ fit_jm <- function(fixed_long,
     priors_surv <- rev(unlist(priors))[1:4]
   }
   
+  # prepare a matrix of indices to select rows of d in for loop in stan
+  cumsum_nrepeat <- cumsum(nrepeat)
+  d_ind <- cbind(c(1, (cumsum_nrepeat[-ngroup] + 1)), cumsum_nrepeat)
+  
+  # prepare a matrix of indices for matrices for quadratures
+  Q_ind <- cbind((0:(ngroup-1))*Q+1, (1:ngroup)*Q)
+  
   ## prepare data as a list to be passed to stan
   ## it is the shared version for 
   ## normal and t (mod1, mod2, mod3, tv), weibull, rate of change etc
@@ -280,6 +296,8 @@ fit_jm <- function(fixed_long,
                     ngroup = ngroup, 
                     x = x, 
                     d = d,
+                    d_ind = d_ind,
+                    Q_ind,
                     priors_long = priors_long,
                     priors_surv = priors_surv,
                     Q = Q,
@@ -422,8 +440,7 @@ fit_jm <- function(fixed_long,
               Q = Q, 
               priors = priors,
               deriv = deriv,
-              res = res
-              )
+              res = res)
               
   return(out)  
   
