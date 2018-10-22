@@ -61,16 +61,18 @@ predSurv_jm_supp <- function(object,
   x <- model.matrix(fixed_long, batch_data)
   y <- model.frame(fixed_long, batch_data)[, 1]
   
-  dmat <- model.matrix(random_long, batch_data)
-  id_dmat <- data.frame(l_id, dmat)
-  id_dmat_list <- lapply(split(id_dmat[, -1], id_dmat[, 1]), as.matrix)
-  d <- do.call(magic::adiag, id_dmat_list)
+  # dmat <- model.matrix(random_long, batch_data)
+  # id_dmat <- data.frame(l_id, dmat)
+  # id_dmat_list <- lapply(split(id_dmat[, -1], id_dmat[, 1]), as.matrix)
+  # d <- do.call(magic::adiag, id_dmat_list)
+
+  d <- model.matrix(random_long, batch_data)
   
   ## total number of observations in the longitudinal data
   ## number of covariates in the x and d matrices
   ntot <- nrow(x) 
   p <- ncol(x)
-  q <- ncol(id_dmat) - 1
+  q <- ncol(d)
   
   ## extract survival times and event indicator
   if(last_time == "surv_time"){
@@ -120,15 +122,20 @@ predSurv_jm_supp <- function(object,
   x_quad <- model.matrix(fixed_long, batch_data_quad)
 
   ## d matrix for log survival density
-  dmat_T <- model.matrix(random_long, batch_data_base)
-  id_dmat_T <- data.frame(s_id, dmat_T)
-  id_dmat_list_T <- lapply(split(id_dmat_T[, -1], id_dmat_T[, 1]), as.matrix)
-  d_T <- do.call(magic::adiag, id_dmat_list_T)
+  # dmat_T <- model.matrix(random_long, batch_data_base)
+  # id_dmat_T <- data.frame(s_id, dmat_T)
+  # id_dmat_list_T <- lapply(split(id_dmat_T[, -1], id_dmat_T[, 1]), as.matrix)
+  # d_T <- do.call(magic::adiag, id_dmat_list_T)
   
-  dmat_quad <- model.matrix(random_long, batch_data_quad)
-  id_dmat_quad <- data.frame(rep(s_id, each = Q), dmat_quad)
-  id_dmat_list_quad <- lapply(split(id_dmat_quad[, -1], id_dmat_quad[, 1]), as.matrix)
-  d_quad <- do.call(magic::adiag, id_dmat_list_quad)
+  d_T <- model.matrix(random_long, batch_data_base)
+  
+  
+  # dmat_quad <- model.matrix(random_long, batch_data_quad)
+  # id_dmat_quad <- data.frame(rep(s_id, each = Q), dmat_quad)
+  # id_dmat_list_quad <- lapply(split(id_dmat_quad[, -1], id_dmat_quad[, 1]), as.matrix)
+  # d_quad <- do.call(magic::adiag, id_dmat_list_quad)
+  
+  d_quad <- model.matrix(random_long, batch_data_quad)
   
   ## prepare x and d matrices for the derivative
   if(!is.null(deriv)){
@@ -141,20 +148,31 @@ predSurv_jm_supp <- function(object,
     x_deriv_T <- model.matrix(deriv_fixed_formula, batch_data_base)
     x_deriv_quad <- model.matrix(deriv_fixed_formula, batch_data_quad)
     
-    dmat_deriv_T <- model.matrix(deriv_random_formula, batch_data_base)
-    id_dmat_deriv_T <- data.frame(s_id, dmat_deriv_T)
-    id_dmat_deriv_list_T <- lapply(split(id_dmat_deriv_T[, -1], id_dmat_deriv_T[, 1]), as.matrix)
-    d_deriv_T <- do.call(magic::adiag, id_dmat_deriv_list_T)
+    # dmat_deriv_T <- model.matrix(deriv_random_formula, batch_data_base)
+    # id_dmat_deriv_T <- data.frame(s_id, dmat_deriv_T)
+    # id_dmat_deriv_list_T <- lapply(split(id_dmat_deriv_T[, -1], id_dmat_deriv_T[, 1]), as.matrix)
+    # d_deriv_T <- do.call(magic::adiag, id_dmat_deriv_list_T)
     
-    dmat_deriv_quad <- model.matrix(deriv_random_formula, batch_data_quad)
-    id_dmat_deriv_quad <- data.frame(rep(s_id, each = Q), dmat_deriv_quad)
-    id_dmat_deriv_list_quad <- lapply(split(id_dmat_deriv_quad[, -1], id_dmat_deriv_quad[, 1]), as.matrix)
-    d_deriv_quad <- do.call(magic::adiag, id_dmat_deriv_list_quad)
+    d_deriv_T <- model.matrix(deriv_random_formula, batch_data_base)
+    
+    # dmat_deriv_quad <- model.matrix(deriv_random_formula, batch_data_quad)
+    # id_dmat_deriv_quad <- data.frame(rep(s_id, each = Q), dmat_deriv_quad)
+    # id_dmat_deriv_list_quad <- lapply(split(id_dmat_deriv_quad[, -1], id_dmat_deriv_quad[, 1]), as.matrix)
+    # d_deriv_quad <- do.call(magic::adiag, id_dmat_deriv_list_quad)
+    
+    d_deriv_quad <- model.matrix(deriv_random_formula, batch_data_quad)
     
   }
   
   ## extend the weights for quadrature approx.
   wt_quad <- rep(wt, ngroup)
+  
+  # prepare a matrix of indices to select rows of d in for loop in stan
+  cumsum_nrepeat <- cumsum(nobs)
+  d_ind <- cbind(c(1, (cumsum_nrepeat[-ngroup] + 1)), cumsum_nrepeat)
+  
+  # prepare a matrix of indices for matrices for quadratures
+  Q_ind <- cbind((0:(ngroup-1))*Q+1, (1:ngroup)*Q)
   
   if(model == "nor_nor" & bh == "weibull"){
     
@@ -182,7 +200,9 @@ predSurv_jm_supp <- function(object,
                          x_quad = x_quad,
                          d_T = d_T,
                          d_quad = d_quad,
-                         wt_quad = wt_quad)
+                         wt_quad = wt_quad,
+                         d_ind = d_ind,
+                         Q_ind = Q_ind)
     
     if(!is.null(deriv)){
       data_nor_nor$x_deriv_T <- x_deriv_T
@@ -248,7 +268,9 @@ predSurv_jm_supp <- function(object,
                           x_quad = x_quad,
                           d_T = d_T,
                           d_quad = d_quad,
-                          wt_quad = wt_quad)
+                          wt_quad = wt_quad,
+                          d_ind = d_ind,
+                          Q_ind = Q_ind)
     
     if(!is.null(deriv)){
       data_t_t_mod3$x_deriv_T <- x_deriv_T
