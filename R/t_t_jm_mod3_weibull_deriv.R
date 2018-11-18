@@ -86,7 +86,6 @@ real eta2;
 
 transformed parameters{
 cov_matrix[q] Sigma; 
-vector[ntot] linpred;
 matrix[ngroup, q] B;         
 //matrix[ngroup * q, 1] Bmat;
 vector[p_deriv] alpha_deriv;

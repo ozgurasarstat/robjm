@@ -51,8 +51,8 @@ real sigma_Z;
 real log_lambda;
 real log_nu;
 vector[ncol_c] omega;
-vector[2] eta;
-
+real eta1;
+real eta2;
 }
 
 transformed data{
@@ -60,12 +60,13 @@ vector[q] zero_B = rep_vector(0, q);
 }
 
 parameters{
-matrix[ngroup, q] B;
+//matrix[ngroup, q] B;
+vector[q] B[ngroup];
 }
 
 transformed parameters{
-vector[ntot] linpred;
-//matrix[ngroup * q, 1] Bmat;
+//vector[ntot] linpred;
+matrix[ngroup, q] Bmat;
 vector[p_deriv] alpha_deriv;
 matrix[ngroup, q_deriv] B_deriv;
 //matrix[ngroup * q_deriv, 1] Bmat_deriv;
@@ -88,20 +89,22 @@ vector[ntot_quad] lsd_expr2_quad_ystar_deriv;
 //vector[ngroup] lsd;
 
 //longitudinal sub-model
-//Bmat = to_matrix(B', ngroup * q, 1);
+for(i in 1:q){
+Bmat[, i] = to_vector(B[, i]);
+}
 
 for(i in 1:p_deriv) alpha_deriv[i] = alpha[deriv_alpha_ind[i]];
-for(i in 1:q_deriv) B_deriv[, i] = B[, deriv_B_ind[i]];
+for(i in 1:q_deriv) B_deriv[, i] = Bmat[, deriv_B_ind[i]];
 //Bmat_deriv = to_matrix(B_deriv', ngroup * q_deriv, 1);
 
 for(i in 1:ngroup){
-d_B[d_ind[i, 1]:d_ind[i, 2]] = to_vector(d[d_ind[i, 1]:d_ind[i, 2], ] * to_matrix(B[i, ], q, 1));
-d_quad_B[Q_ind[i, 1]:Q_ind[i, 2]] = to_vector(d_quad[Q_ind[i, 1]:Q_ind[i, 2], ] * to_matrix(B[i, ], q, 1));
+d_B[d_ind[i, 1]:d_ind[i, 2]] = to_vector(d[d_ind[i, 1]:d_ind[i, 2], ] * to_matrix(Bmat[i, ], q, 1));
+d_quad_B[Q_ind[i, 1]:Q_ind[i, 2]] = to_vector(d_quad[Q_ind[i, 1]:Q_ind[i, 2], ] * to_matrix(Bmat[i, ], q, 1));
 d_deriv_quad_B[Q_ind[i, 1]:Q_ind[i, 2]] = to_vector(d_deriv_quad[Q_ind[i, 1]:Q_ind[i, 2]] * to_matrix(B_deriv[i, ], q_deriv, 1));
 }
 
 //linpred = x * alpha + to_vector(d * Bmat);
-linpred = x * alpha + d_B;
+//linpred = x * alpha + d_B;
 
 //survival sub-model, lsd: log-survival density
 //lsd_expr1_bh = log_lambda + log_nu + (exp(log_nu) - 1) * log(S); 
@@ -118,24 +121,22 @@ lsd_expr2_quad_ystar = x_quad * alpha + d_quad_B;
 lsd_expr2_quad_ystar_deriv = x_deriv_quad * alpha_deriv + d_deriv_quad_B;
 
 lsd_expr2_quad = wt_quad .* exp(lsd_expr2_quad_bh + lsd_expr2_quad_fix + 
-                                rep_vector(eta[1], ntot_quad) .* lsd_expr2_quad_ystar + 
-                                rep_vector(eta[2], ntot_quad) .* lsd_expr2_quad_ystar_deriv);
+                                eta1 * lsd_expr2_quad_ystar + 
+                                eta2 * lsd_expr2_quad_ystar_deriv);
 
 for(i in 1:ngroup){
 lsd_expr2[i] = 0.5 * S[i] * sum(lsd_expr2_quad[Q_ind[i, 1]:Q_ind[i, 2]]);
 }
 
-lsd_expr2 = -1.0 * lsd_expr2; 
+//lsd_expr2 = -1.0 * lsd_expr2; 
 //lsd = lsd_expr1 - lsd_expr2;
 }
 
 model{
 
-y ~ normal(linpred, sigma_Z);
+y ~ normal(x * alpha + d_B, sigma_Z);
 
-for(i in 1:ngroup){
-B[i, ] ~ multi_normal(zero_B, Sigma);
-}
+B ~ multi_normal(zero_B, Sigma);
 
 target += lsd_expr2;
 

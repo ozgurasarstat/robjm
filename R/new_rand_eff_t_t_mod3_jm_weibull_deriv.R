@@ -51,7 +51,8 @@ real sigma_Z;
 real log_lambda;
 real log_nu;
 vector[ncol_c] omega;
-vector[2] eta;
+real eta1;
+real eta2;
 real phi;
 real delta;
 
@@ -62,14 +63,14 @@ vector[q] zero_B = rep_vector(0, q);
 }
 
 parameters{
-matrix[ngroup, q] Bstar;
+//matrix[ngroup, q] Bstar;
+vector[q] Bstar[ngroup];
 vector<lower = 0>[ngroup] V;
 vector<lower = 0>[ntot] W;
 }
 
 transformed parameters{
 
-vector[ntot] linpred;
 matrix[ngroup, q] B;         
 //matrix[ngroup * q, 1] Bmat;
 vector[p_deriv] alpha_deriv;
@@ -94,8 +95,8 @@ vector[ntot_quad] lsd_expr2_quad_ystar_deriv;
 //vector[ngroup] lsd;
 
 //longitudinal sub-model
-for(i in 1:ngroup){
-B[i, ] = Bstar[i, ] * sqrt(V[i]);
+for(i in 1:q){
+B[, i] = to_vector(Bstar[, i]) .* sqrt(V);
 }
 
 //Bmat = to_matrix(B', ngroup * q, 1);
@@ -111,7 +112,6 @@ d_deriv_quad_B[Q_ind[i, 1]:Q_ind[i, 2]] = to_vector(d_deriv_quad[Q_ind[i, 1]:Q_i
 }
 
 //linpred = x * alpha + to_vector(d * Bmat);
-linpred = x * alpha + d_B;
 
 //survival sub-model, lsd: log-survival density
 //lsd_expr1_bh = log_lambda + log_nu + (exp(log_nu) - 1) * log(S); 
@@ -128,29 +128,25 @@ lsd_expr2_quad_ystar = x_quad * alpha + d_quad_B;
 lsd_expr2_quad_ystar_deriv = x_deriv_quad * alpha_deriv + d_deriv_quad_B;
 
 lsd_expr2_quad = wt_quad .* exp(lsd_expr2_quad_bh + lsd_expr2_quad_fix + 
-                                rep_vector(eta[1], ntot_quad) .* lsd_expr2_quad_ystar + 
-                                rep_vector(eta[2], ntot_quad) .* lsd_expr2_quad_ystar_deriv);
+                                eta1 * lsd_expr2_quad_ystar + 
+                                eta2 * lsd_expr2_quad_ystar_deriv);
 
 for(i in 1:ngroup){
 lsd_expr2[i] = 0.5 * S[i] * sum(lsd_expr2_quad[Q_ind[i, 1]:Q_ind[i, 2]]);
 }
 
-lsd_expr2 = -1.0 * lsd_expr2; 
+//lsd_expr2 = -1.0 * lsd_expr2; 
 //lsd = lsd_expr1 - lsd_expr2;
 }
 
 model{
 
-for(i in 1:ngroup){
-Bstar[i] ~ multi_normal(zero_B, Sigma);
-}
+Bstar ~ multi_normal(zero_B, Sigma);
 
 V ~ inv_gamma(phi/2, phi/2);
 W ~ inv_gamma(delta/2, delta/2);
 
-for(i in 1:ntot){
-y[i] ~ normal(linpred[i], sigma_Z * sqrt(W[i]));
-}
+y ~ normal(x * alpha + d_B, sigma_Z * sqrt(W));
 
 target += lsd_expr2;
 

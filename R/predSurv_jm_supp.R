@@ -32,9 +32,11 @@ predSurv_jm_supp <- function(object,
   log_lambda <- matrix(rstan::extract(object$res)$log_lambda)
   log_nu     <- matrix(rstan::extract(object$res)$log_nu)
   omega      <- rstan::extract(object$res)$omega
-  eta        <- rstan::extract(object$res)$eta
-  if(class(eta) == "array"){
-    eta <- matrix(eta)
+  if(is.null(deriv)){
+    eta <- matrix(rstan::extract(object$res)$eta)
+  }else{
+    eta1 <- matrix(rstan::extract(object$res)$eta1)
+    eta2 <- matrix(rstan::extract(object$res)$eta2)
   }
   
   if(object$model == "t_t_mod3"){
@@ -224,12 +226,14 @@ predSurv_jm_supp <- function(object,
       data_nor_nor$log_lambda <- log_lambda[i, ]
       data_nor_nor$log_nu     <- log_nu[i, ]
       data_nor_nor$omega      <- as.array(omega[i, ])
-      if(ncol(eta) == 1){
+      
+      if(is.null(deriv)){
         data_nor_nor$eta      <- eta[i, ]
       }else{
-        data_nor_nor$eta      <- as.array(eta[i, ])
+        data_nor_nor$eta1     <- eta1[i, ]
+        data_nor_nor$eta2     <- eta2[i, ]
       }
-      
+
       B_res <- rstan::sampling(mod, 
                         data = data_nor_nor, 
                         iter = B_control$iter, 
@@ -292,11 +296,14 @@ predSurv_jm_supp <- function(object,
       data_t_t_mod3$log_lambda <- log_lambda[i, ]
       data_t_t_mod3$log_nu     <- log_nu[i, ]
       data_t_t_mod3$omega      <- as.array(omega[i, ])
-      if(ncol(eta) == 1){
-        data_t_t_mod3$eta      <- eta[i, ]
+      
+      if(is.null(deriv)){
+        data_t_t_mod3$eta <- eta[i, ]
       }else{
-        data_t_t_mod3$eta      <- as.array(eta[i, ])
+        data_t_t_mod3$eta1 <- eta1[i, ]
+        data_t_t_mod3$eta2 <- eta2[i, ]
       }
+      
       data_t_t_mod3$phi        <- phi[i, ]
       data_t_t_mod3$delta      <- delta[i, ]
       
