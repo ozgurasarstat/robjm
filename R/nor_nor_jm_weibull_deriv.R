@@ -65,7 +65,8 @@ vector[q] zero_B = rep_vector(0, q);
 parameters{
 //longitudinal sub-model
 vector[p] alpha;              // fixed effects coefficients
-matrix[ngroup, q] B;          // random effects coefficients
+//matrix[ngroup, q] B;          // random effects coefficients
+vector[q] B[ngroup];
 corr_matrix[q] Omega;         // correlation matrix for random effects
 vector<lower = 0>[q] sigma_B; // scale parameters for random effects
 real<lower = 0> sigma_Z;      // scale parameter of measurement error
@@ -75,13 +76,13 @@ real<lower = 0> sigma_Z;      // scale parameter of measurement error
 real log_lambda;
 real log_nu;
 vector[ncol_c] omega; // fixed effects parameters
-vector[2] eta;             // association parameters
+real eta1;             // association parameters
+real eta2;
 }
 
 transformed parameters{
 cov_matrix[q] Sigma; 
-vector[ntot] linpred;
-//matrix[ngroup * q, 1] Bmat;
+matrix[ngroup, q] Bmat;
 vector[p_deriv] alpha_deriv;
 matrix[ngroup, q_deriv] B_deriv;
 //matrix[ngroup * q_deriv, 1] Bmat_deriv;
@@ -105,22 +106,22 @@ vector[ntot_quad] lsd_expr2_quad_ystar_deriv;
 vector[ngroup] lsd;
 
 //longitudinal sub-model
-//Bmat = to_matrix(B', ngroup * q, 1);
+for(i in 1:q){
+Bmat[, i] = to_vector(B[, i]);
+}
 
 //deriv
 for(i in 1:p_deriv) alpha_deriv[i] = alpha[deriv_alpha_ind[i]];
-for(i in 1:q_deriv) B_deriv[, i] = B[, deriv_B_ind[i]];
+for(i in 1:q_deriv) B_deriv[, i] = Bmat[, deriv_B_ind[i]];
 //Bmat_deriv = to_matrix(B_deriv', ngroup * q_deriv, 1);
 
 for(i in 1:ngroup){
-d_B[d_ind[i, 1]:d_ind[i, 2]] = to_vector(d[d_ind[i, 1]:d_ind[i, 2], ] * to_matrix(B[i, ], q, 1));
-d_T_B[i:i] = to_vector(d_T[i, ] * to_matrix(B[i, ], q, 1));
-d_quad_B[Q_ind[i, 1]:Q_ind[i, 2]] = to_vector(d_quad[Q_ind[i, 1]:Q_ind[i, 2], ] * to_matrix(B[i, ], q, 1));
+d_B[d_ind[i, 1]:d_ind[i, 2]] = to_vector(d[d_ind[i, 1]:d_ind[i, 2], ] * to_matrix(Bmat[i, ], q, 1));
+d_T_B[i:i] = to_vector(d_T[i, ] * to_matrix(Bmat[i, ], q, 1));
+d_quad_B[Q_ind[i, 1]:Q_ind[i, 2]] = to_vector(d_quad[Q_ind[i, 1]:Q_ind[i, 2], ] * to_matrix(Bmat[i, ], q, 1));
 d_deriv_T_B[i:i] = to_vector(d_deriv_T[i, ] * to_matrix(B_deriv[i, ], q_deriv, 1));
 d_deriv_quad_B[Q_ind[i, 1]:Q_ind[i, 2]] = to_vector(d_deriv_quad[Q_ind[i, 1]:Q_ind[i, 2]] * to_matrix(B_deriv[i, ], q_deriv, 1));
 }
-
-linpred = x * alpha + d_B;
 
 Sigma = quad_form_diag(Omega, sigma_B);
 
@@ -130,8 +131,9 @@ lsd_expr1_fix = c * omega;
 lsd_expr1_ystar = x_T * alpha + d_T_B;
 lsd_expr1_ystar_deriv = x_deriv_T * alpha_deriv + d_deriv_T_B;
 
-lsd_expr1 = E .* (lsd_expr1_bh + lsd_expr1_fix + rep_vector(eta[1], ngroup) .* lsd_expr1_ystar + 
-                  rep_vector(eta[2], ngroup) .* lsd_expr1_ystar_deriv);
+lsd_expr1 = E .* (lsd_expr1_bh + lsd_expr1_fix + 
+                  eta1 * lsd_expr1_ystar + 
+                  eta2 * lsd_expr1_ystar_deriv);
 
 lsd_expr2_quad_bh = log_lambda + log_nu + (exp(log_nu) - 1) * log(t_quad); 
 lsd_expr2_quad_fix = c_quad * omega; 
@@ -139,8 +141,8 @@ lsd_expr2_quad_ystar = x_quad * alpha + d_quad_B;
 lsd_expr2_quad_ystar_deriv = x_deriv_quad * alpha_deriv + d_deriv_quad_B;
 
 lsd_expr2_quad = wt_quad .* exp(lsd_expr2_quad_bh + lsd_expr2_quad_fix + 
-                                rep_vector(eta[1], ntot_quad) .* lsd_expr2_quad_ystar + 
-                                rep_vector(eta[2], ntot_quad) .* lsd_expr2_quad_ystar_deriv);
+                                eta1 * lsd_expr2_quad_ystar + 
+                                eta2 * lsd_expr2_quad_ystar_deriv);
 
 for(i in 1:ngroup){
 lsd_expr2[i] = 0.5 * S[i] * sum(lsd_expr2_quad[Q_ind[i, 1]:Q_ind[i, 2]]);
@@ -154,20 +156,19 @@ model{
 
 alpha ~ cauchy(0, priors_long[1]);
 
-for(i in 1:ngroup){
-B[i] ~ multi_normal(zero_B, Sigma);
-}
+B ~ multi_normal(zero_B, Sigma);
 
 Omega ~ lkj_corr(priors_long[2]);
 sigma_B ~ cauchy(0, priors_long[3]);
 sigma_Z ~ cauchy(0, priors_long[4]);
 
-y ~ normal(linpred, sigma_Z);
+y ~ normal(x * alpha + d_B, sigma_Z);
 
 log_lambda ~ cauchy(0, priors_surv[1]);
 log_nu ~ cauchy(0, priors_surv[2]);
 omega ~ cauchy(0, priors_surv[3]);
-eta ~ cauchy(0, priors_surv[4]);
+eta1 ~ cauchy(0, priors_surv[4]);
+eta2 ~ cauchy(0, priors_surv[4]);
 
 target += lsd;
 
