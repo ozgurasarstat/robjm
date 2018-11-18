@@ -65,7 +65,8 @@ vector[q] zero_B = rep_vector(0, q);
 parameters{
 //longitudinal sub-model
 vector[p] alpha;              // fixed effects coefficients
-matrix[ngroup, q] Bstar;          // random effects coefficients
+//matrix[ngroup, q] Bstar;          // random effects coefficients
+vector[q] Bstar[ngroup];
 corr_matrix[q] Omega;         // correlation matrix for random effects
 vector<lower = 0>[q] sigma_B; // scale parameters for random effects
 real<lower = 0> sigma_Z;      // scale parameter of measurement error
@@ -79,7 +80,8 @@ vector<lower = 0>[ntot] W;
 real log_lambda;
 real log_nu;
 vector[ncol_c] omega; // fixed effects parameters
-vector[2] eta;             // association parameter
+real eta1;             // association parameter
+real eta2;
 }
 
 transformed parameters{
@@ -95,8 +97,6 @@ vector[ngroup] d_T_B;
 vector[ntot_quad] d_quad_B;
 vector[ngroup] d_deriv_T_B;
 vector[ntot_quad] d_deriv_quad_B;
-real<lower = 2, upper = 100> phi;
-real<lower = 2, upper = 100> delta;
 
 vector[ngroup] lsd_expr1;
 vector[ngroup] lsd_expr1_bh;
@@ -115,11 +115,12 @@ vector[ngroup] lsd;
 
 //longitudinal sub-model
 
-phi = 1/phi_inv;
-delta = 1/delta_inv;
+//for(i in 1:ngroup){
+//B[i, ] = Bstar[i, ] * sqrt(V[i]);
+//}
 
-for(i in 1:ngroup){
-B[i, ] = Bstar[i, ] * sqrt(V[i]);
+for(i in 1:q){
+B[, i] = to_vector(Bstar[, i]) .* sqrt(V);
 }
 
 //Bmat = to_matrix(B', ngroup * q, 1);
@@ -136,9 +137,6 @@ d_deriv_T_B[i:i] = to_vector(d_deriv_T[i, ] * to_matrix(B_deriv[i, ], q_deriv, 1
 d_deriv_quad_B[Q_ind[i, 1]:Q_ind[i, 2]] = to_vector(d_deriv_quad[Q_ind[i, 1]:Q_ind[i, 2]] * to_matrix(B_deriv[i, ], q_deriv, 1));
 }
 
-//linpred = x * alpha + to_vector(d * Bmat);
-linpred = x * alpha + d_B;
-
 Sigma = quad_form_diag(Omega, sigma_B);
 
 //survival sub-model, lsd: log-survival density
@@ -150,8 +148,8 @@ lsd_expr1_ystar = x_T * alpha + d_T_B;
 lsd_expr1_ystar_deriv = x_deriv_T * alpha_deriv + d_deriv_T_B;
 
 lsd_expr1 = E .* (lsd_expr1_bh + lsd_expr1_fix + 
-                  rep_vector(eta[1], ngroup) .* lsd_expr1_ystar + 
-                  rep_vector(eta[2], ngroup) .* lsd_expr1_ystar_deriv);
+                  eta1 * lsd_expr1_ystar + 
+                  eta2 * lsd_expr1_ystar_deriv);
 
 lsd_expr2_quad_bh = log_lambda + log_nu + (exp(log_nu) - 1) * log(t_quad); 
 lsd_expr2_quad_fix = c_quad * omega; 
@@ -159,8 +157,8 @@ lsd_expr2_quad_ystar = x_quad * alpha + d_quad_B;
 lsd_expr2_quad_ystar_deriv = x_deriv_quad * alpha_deriv + d_deriv_quad_B;
 
 lsd_expr2_quad = wt_quad .* exp(lsd_expr2_quad_bh + lsd_expr2_quad_fix + 
-                                rep_vector(eta[1], ntot_quad) .* lsd_expr2_quad_ystar + 
-                                rep_vector(eta[2], ntot_quad) .* lsd_expr2_quad_ystar_deriv);
+                                eta1 * lsd_expr2_quad_ystar + 
+                                eta2 * lsd_expr2_quad_ystar_deriv);
 
 for(i in 1:ngroup){
 lsd_expr2[i] = 0.5 * S[i] * sum(lsd_expr2_quad[Q_ind[i, 1]:Q_ind[i, 2]]);
@@ -174,26 +172,25 @@ model{
 
 alpha ~ cauchy(0, priors_long[1]);
 
-for(i in 1:ngroup){
-Bstar[i] ~ multi_normal(zero_B, Sigma);
-}
+Bstar ~ multi_normal(zero_B, Sigma);
 
 Omega ~ lkj_corr(priors_long[2]);
 sigma_B ~ cauchy(0, priors_long[3]);
 sigma_Z ~ cauchy(0, priors_long[4]);
 
-V ~ inv_gamma(phi/2, phi/2);
+V ~ inv_gamma((1/phi_inv)/2, (1/phi_inv)/2);
 //phi_inv ~ uniform(0.01, 0.5);//the prior is uniform with -infty and infty, constrained above
-W ~ inv_gamma(delta/2, delta/2);
+W ~ inv_gamma((1/delta_inv)/2, (1/delta_inv)/2);
 //delta_inv ~ uniform(0.01, 0.5);//the prior is uniform with -infty and infty, constrained above
 
-for(i in 1:ntot) y[i] ~ normal(linpred[i], sigma_Z * sqrt(W[i]));
+y ~ normal(x * alpha + d_B, sigma_Z * sqrt(W));
 
 //zeta ~ cauchy(0, priors_surv[1]);
 log_lambda ~ cauchy(0, priors_surv[1]);
 log_nu ~ cauchy(0, priors_surv[2]);
 omega ~ cauchy(0, priors_surv[3]);
-eta ~ cauchy(0, priors_surv[4]);
+eta1 ~ cauchy(0, priors_surv[4]);
+eta2 ~ cauchy(0, priors_surv[4]);
 
 target += lsd;
 
@@ -203,10 +200,14 @@ generated quantities{
 real sigmasq;
 real lambda;
 real nu;
+real phi;
+real delta;
 
 lambda = exp(log_lambda);
 nu = exp(log_nu);
 sigmasq = sigma_Z^2;
+phi = 1/phi_inv;
+delta = 1/delta_inv;
 }
 
 "
