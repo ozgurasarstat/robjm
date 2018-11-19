@@ -19,6 +19,6 @@ TO DO:
 - develop general function for ld and jm, e.g. a function that is for nor, mod1, mod2, mod3, tv as a sinlge file 
 
 - and make it or all functions efficient, eta1 and eta2, linpred removed, for loop for y is removed, 
-for loop for B or Bstar is removed.
+for loop for B or Bstar is removed. loop for d_B etc is changed
 
 - add last.time option
