@@ -22,3 +22,5 @@ TO DO:
 for loop for B or Bstar is removed. loop for d_B etc is changed
 
 - add last.time option
+
+- looping over A[n] where A is an array is more fficienct than if A is a matrix (pp  325 of stan ref doc)
