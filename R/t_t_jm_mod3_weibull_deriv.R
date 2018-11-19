@@ -129,11 +129,11 @@ for(i in 1:q_deriv) B_deriv[, i] = B[, deriv_B_ind[i]];
 //Bmat_deriv = to_matrix(B_deriv', ngroup * q_deriv, 1);
 
 for(i in 1:ngroup){
-d_B[d_ind[i, 1]:d_ind[i, 2]] = to_vector(d[d_ind[i, 1]:d_ind[i, 2], ] * to_matrix(B[i, ], q, 1));
-d_T_B[i:i] = to_vector(d_T[i, ] * to_matrix(B[i, ], q, 1));
-d_quad_B[Q_ind[i, 1]:Q_ind[i, 2]] = to_vector(d_quad[Q_ind[i, 1]:Q_ind[i, 2], ] * to_matrix(B[i, ], q, 1));
-d_deriv_T_B[i:i] = to_vector(d_deriv_T[i, ] * to_matrix(B_deriv[i, ], q_deriv, 1));
-d_deriv_quad_B[Q_ind[i, 1]:Q_ind[i, 2]] = to_vector(d_deriv_quad[Q_ind[i, 1]:Q_ind[i, 2]] * to_matrix(B_deriv[i, ], q_deriv, 1));
+d_B[d_ind[i, 1]:d_ind[i, 2]] = d[d_ind[i, 1]:d_ind[i, 2], ] * to_vector(B[i]);
+d_T_B[i] = sum(d_T[i] .* B[i]);
+d_quad_B[Q_ind[i, 1]:Q_ind[i, 2]] = d_quad[Q_ind[i, 1]:Q_ind[i, 2], ] * to_vector(B[i]);
+d_deriv_T_B[i] = sum(d_deriv_T[i, ] .* B_deriv[i]);
+d_deriv_quad_B[Q_ind[i, 1]:Q_ind[i, 2]] = d_deriv_quad[Q_ind[i, 1]:Q_ind[i, 2]] * to_vector(B_deriv[i]);
 }
 
 Sigma = quad_form_diag(Omega, sigma_B);
@@ -169,7 +169,8 @@ lsd = lsd_expr1 - lsd_expr2;
 
 model{
 
-alpha ~ cauchy(0, priors_long[1]);
+alpha[1] ~ cauchy(0, priors_long[1] * 4);
+for(i in 2:p) alpha[i] ~ cauchy(0, priors_long[1]);
 
 Bstar ~ multi_normal(zero_B, Sigma);
 
