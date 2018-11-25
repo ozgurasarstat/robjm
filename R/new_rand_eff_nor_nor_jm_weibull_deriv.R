@@ -100,7 +100,7 @@ for(i in 1:q_deriv) B_deriv[, i] = Bmat[, deriv_B_ind[i]];
 for(i in 1:ngroup){
 d_B[d_ind[i, 1]:d_ind[i, 2]] = d[d_ind[i, 1]:d_ind[i, 2], ] * to_vector(Bmat[i]);
 d_quad_B[Q_ind[i, 1]:Q_ind[i, 2]] = d_quad[Q_ind[i, 1]:Q_ind[i, 2], ] * to_vector(Bmat[i]);
-d_deriv_quad_B[Q_ind[i, 1]:Q_ind[i, 2]] = d_deriv_quad[Q_ind[i, 1]:Q_ind[i, 2]] * to_matrix(B_deriv[i]);
+d_deriv_quad_B[Q_ind[i, 1]:Q_ind[i, 2]] = d_deriv_quad[Q_ind[i, 1]:Q_ind[i, 2]] * to_vector(B_deriv[i]);
 }
 
 //linpred = x * alpha + to_vector(d * Bmat);
