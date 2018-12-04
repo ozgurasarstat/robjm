@@ -25,6 +25,6 @@ for loop for B or Bstar is removed. loop for d_B etc is changed
 
 - looping over A[n] where A is an array is more fficienct than if A is a matrix (pp  325 of stan ref doc)
 
-- equally space + user specified intervals for tv dof
+- add information criterion for number of knots
 
 - make the codes more efficients
