@@ -186,10 +186,12 @@ generated quantities{
 real sigmasq;
 real lambda;
 real nu;
+real phi;
 
 lambda = exp(log_lambda);
 nu = exp(log_nu);
 sigmasq = sigma_Z^2;
+phi = 1/phi_inv;
 }
 
 "
