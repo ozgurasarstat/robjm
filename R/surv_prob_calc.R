@@ -17,8 +17,16 @@
 
  surv_prob_calc <- function(t, ft_batch_data_quad_i, c_quad_i, 
                             timeVar, log_lambda, log_nu, omega, 
-                            eta, alpha, B, wt, pt, Q, bh, deriv,
+                            eta = NULL, eta1 = NULL, eta2 = NULL,  
+                            alpha, B, wt, pt, Q, bh, deriv,
                             fixed_long, random_long){
+   
+     #checks
+     if(is.null(deriv)){
+       if(is.null(eta)) stop("eta should be provided in surv_prob_calc()")
+     }else{
+       if(is.null(eta1) & is.null(eta2)) stop("eta1 and eta2 should be in surv_prob_calc()")
+     }
    
      t_quad <- 0.5 * t * (1 + pt)
      
@@ -37,18 +45,18 @@
      
      if(is.null(deriv)){
        h <- exp(log_lambda + log_nu + (exp(log_nu) - 1) * log(t_quad) + 
-                  c_quad_i %*% omega + 
-                  eta * (x_quad %*% alpha + d_quad %*% B))       
+                c_quad_i %*% omega + 
+                eta * (x_quad %*% alpha + d_quad %*% B))       
      }else{
        h <- exp(log_lambda + log_nu + (exp(log_nu) - 1) * log(t_quad) + 
-                  c_quad_i %*% omega + 
-                  eta[1] * (x_quad %*% alpha + d_quad %*% B) + 
-                  eta[2] * (x_quad_deriv %*% alpha_deriv + d_quad_deriv %*% B_deriv))
+                c_quad_i %*% omega + 
+                eta1 * (x_quad %*% alpha + d_quad %*% B) + 
+                eta2 * (x_quad_deriv %*% alpha_deriv + d_quad_deriv %*% B_deriv))
      }
 
-     
      #out <- exp(- 0.5 * t * sum(wt * h))
      out <- - 0.5 * t * sum(wt * h)
      return(out)
+     
  }
  
