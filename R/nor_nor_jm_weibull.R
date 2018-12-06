@@ -68,7 +68,7 @@ real eta;             // association parameter
 
 transformed parameters{
 cov_matrix[q] Sigma; 
-//vector[ntot] linpred;
+vector[ntot] linpred;
 matrix[ngroup, q] Bmat;
 vector[ntot] d_B;
 vector[ngroup] d_T_B;
@@ -96,8 +96,7 @@ d_T_B[i] = sum(d_T[i] .* Bmat[i]);
 d_quad_B[Q_ind[i, 1]:Q_ind[i, 2]] = d_quad[Q_ind[i, 1]:Q_ind[i, 2], ] * to_vector(B[i, ]);
 }
 
-//linpred = x * alpha + to_vector(d * Bmat);
-//linpred = x * alpha + d_B;
+linpred = x * alpha + d_B;
 
 Sigma = quad_form_diag(Omega, sigma_B);
 
@@ -135,7 +134,7 @@ Omega ~ lkj_corr(priors_long[2]);
 sigma_B ~ cauchy(0, priors_long[3]);
 sigma_Z ~ cauchy(0, priors_long[4]);
 
-y ~ normal(x * alpha + d_B, sigma_Z);
+y ~ normal(linpred, sigma_Z);
 
 log_lambda ~ cauchy(0, priors_surv[1]);
 log_nu ~ cauchy(0, priors_surv[2]);
@@ -150,10 +149,17 @@ generated quantities{
 real sigmasq;
 real lambda;
 real nu;
+vector[ntot] log_lik_nor_ext;
+vector[ngroup] log_lik_nor;
+vector[ngroup] log_lik;
 
 sigmasq = sigma_Z^2;
 lambda = exp(log_lambda);
 nu = exp(log_nu);
+
+for(i in 1:ntot) log_lik_nor_ext[i] = normal_lpdf(y[i] | linpred[i], sigma_Z);
+for(i in 1:ngroup) log_lik_nor[i] = sum(log_lik_nor_ext[d_ind[i, 1]:d_ind[i, 2]]);
+log_lik = log_lik_nor + lsd;
 }
 
 "
