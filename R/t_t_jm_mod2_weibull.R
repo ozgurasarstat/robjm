@@ -188,6 +188,5 @@ nu = exp(log_nu);
 sigmasq = sigma_Z^2;
 phi = 1/phi_inv;
 delta = 1/delta_inv;
-
 }
 "
