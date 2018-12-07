@@ -175,7 +175,12 @@ target += lsd;
 
 generated quantities{
 real sigmasq;
+real phi;
+real delta0;
+
 sigmasq = sigma_Z^2;
+phi = 1/phi_inv;
+delta0 = 1/delta0_inv;
 }
 
 "
