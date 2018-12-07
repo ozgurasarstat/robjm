@@ -100,7 +100,6 @@ B[, i] = to_vector(Bstar[, i]) .* sqrt(V);
 
 for(i in 1:ntot) V_ext[i] = V[id[i]];
 
-
 //Bmat = to_matrix(B', ngroup * q, 1);
 
 for(i in 1:ngroup){
