@@ -57,7 +57,8 @@ fit_jm <- function(fixed_long,
                    ...){
 
   ## be sure that distribution specifications are correct
-  if(!(model %in% c("nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod2", "t_t_tv"))){
+  if(!(model %in% c("nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod2", "t_t_tv",
+                    "nor_t_mod3", "nor_t_tv"))){
     stop("Model should be one of the followings: nor_nor, t_t_mod1, t_t_mod2, t_t_mod3, 
          nor_t_mod3, t_t_tv")
   }
@@ -347,7 +348,7 @@ fit_jm <- function(fixed_long,
     
   }
   
-  if(model %in% c("t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod2")){
+  if(model %in% c("t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod2", "nor_t_mod3")){
     
   if(bh %in% c("spline", "piecewise")){
     
@@ -364,6 +365,7 @@ fit_jm <- function(fixed_long,
     if(model == "t_t_mod3"){
       res <- stan(model_code = t_t_jm_mod3, data = data_stan, ...)
     }
+    
   }else if(bh == "weibull"){
     
     if(model == "t_t_mod1"){
@@ -397,30 +399,39 @@ fit_jm <- function(fixed_long,
     if(model == "nor_t_mod2"){
       res <- stan(model_code = nor_t_jm_mod2_weibull, data = data_stan, ...)
     }
+    if(model == "nor_t_mod3"){
+      res <- stan(model_code = nor_t_jm_mod3_weibull, data = data_stan, ...)
+    }
   }
     
  }
 
-  if(model == "t_t_tv"){
+  if(model %in% c("t_t_tv", "nor_t_tv")){
+    
     a <- splines::ns(data_long[, spline_tv[[1]]], df = (spline_tv[[2]] + 1))
     ncol_a <- ncol(a)
     attributes(a) <- NULL
     a <- matrix(a, ncol = ncol_a)
+    
+    data_stan$ncol_a <- ncol_a
+    data_stan$a <- a
 
   if(bh %in% c("spline", "piecewise")){
     
     data_stan$ncol_e <- ncol_e
     data_stan$e <- e
     data_stan$e_quad <- e_quad
-    data_stan$ncol_a <- ncol_a
-    data_stan$a <- a
     
-    res <- stan(model_code = t_t_tv_jm, data = data_stan, ...)
+    if(model == "t_t_tv"){
+      res <- stan(model_code = t_t_tv_jm, data = data_stan, ...)
+    }
     
   }else if(bh == "weibull"){
-    data_stan$ncol_a <- ncol_a
-    data_stan$a <- a
-    res <- stan(model_code = t_t_tv_jm_weibull, data = data_stan, ...)
+    if(model == "t_t_tv"){
+      res <- stan(model_code = t_t_tv_jm_weibull, data = data_stan, ...)
+    }else if(model == "nor_t_tv"){
+      res <- stan(model_code = nor_t_tv_jm_weibull, data = data_stan, ...)
+    }
   }
     
   }
