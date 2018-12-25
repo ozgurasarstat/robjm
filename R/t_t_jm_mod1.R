@@ -16,6 +16,8 @@ vector[4] priors_long; // prior hyperparameters, order: alpha, Omega, sigma_B, s
 int d_ind[ngroup, 2];
 int Q_ind[ngroup, 2];
 
+int nrepeat[ngroup];
+
 //quadratures
 int<lower = 1> Q; //number of Gauss-Legendre quadratures
 
@@ -96,11 +98,12 @@ for(i in 1:q){
 B[, i] = to_vector(Bstar[, i]) .* sqrt(V);
 }
 
-for(i in 1:ntot) V_ext[i] = V[id[i]];
+//for(i in 1:ntot) V_ext[i] = V[id[i]];
 
 //Bmat = to_matrix(B', ngroup * q, 1);
 
 for(i in 1:ngroup){
+V_ext[d_ind[i, 1]:d_ind[i, 2]] = rep_vector(V[i], nrepeat[i]);
 d_B[d_ind[i, 1]:d_ind[i, 2]] = d[d_ind[i, 1]:d_ind[i, 2], ] * to_vector(B[i]);
 d_T_B[i] = sum(d_T[i] .* B[i]);
 d_quad_B[Q_ind[i, 1]:Q_ind[i, 2]] = d_quad[Q_ind[i, 1]:Q_ind[i, 2]] * to_vector(B[i]);
