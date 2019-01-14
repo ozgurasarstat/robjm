@@ -12,7 +12,7 @@ simulate_data <- function(nsubj = 100,
                           model = "tv",
                           omega = c(0.5),
                           controls_time = list(t_min = 0, t_max = 5, a = 0.01),
-                          alpha = c(1, 0, 0.5, 0),
+                          alpha = c(1, 0.6, 0.4, 0.2),
                           Sigma = matrix(c(0.6, 0.25, 0.25, 0.3), ncol = 2),
                           sigmasq = 0.25,
                           returns = c("repeat_data", "base_data")){
