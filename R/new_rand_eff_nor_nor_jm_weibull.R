@@ -54,7 +54,7 @@ transformed parameters{
 vector[ntot] linpred;
 //matrix[ngroup * q, 1] Bmat;
 vector[ntot] d_B;
-vector[ngroup] d_T_B;
+//vector[ngroup] d_T_B;
 vector[ntot_quad] d_quad_B;
 
 //vector[ngroup] lsd_expr1;
