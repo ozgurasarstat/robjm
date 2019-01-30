@@ -240,7 +240,8 @@ predSurv_jm_supp <- function(object,
                         warmup = B_control$warmup,
                         chains = B_control$chains,
                         control = list(adapt_delta = B_control$adapt_delta, 
-                                       max_treedepth = B_control$max_treedepth)
+                                       max_treedepth = B_control$max_treedepth),
+                        pars = c("B")
                         )
       B_sampled[[i]] <- matrix(rstan::summary(B_res)$summary[1:(ngroup*q), "50%"], ncol = q, byrow = T)
     }  
