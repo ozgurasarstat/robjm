@@ -243,7 +243,8 @@ predSurv_jm_supp <- function(object,
                                        max_treedepth = B_control$max_treedepth),
                         pars = c("B")
                         )
-      B_sampled[[i]] <- matrix(rstan::summary(B_res)$summary[1:(ngroup*q), "50%"], ncol = q, byrow = T)
+      #B_sampled[[i]] <- matrix(rstan::summary(B_res)$summary[1:(ngroup*q), "50%"], ncol = q, byrow = T)
+      B_sampled[[i]] <- rstan::extract(B_res)[["B"]]
     }  
   }
   
@@ -317,7 +318,8 @@ predSurv_jm_supp <- function(object,
                                        max_treedepth = B_control$max_treedepth)
                         )
       
-      B_sampled[[i]] <- matrix(rstan::summary(B_res)$summary[1:(ngroup*q), "50%"], ncol = q, byrow = T)
+      #B_sampled[[i]] <- matrix(rstan::summary(B_res)$summary[1:(ngroup*q), "50%"], ncol = q, byrow = T)
+      B_sampled[[i]] <- rstan::extract(B_res)[["B"]]
     }
   }
   
@@ -335,12 +337,17 @@ predSurv_jm_supp <- function(object,
   
   ft_probs <- list()
   
+  ## number of B samples
+  B_length <- B_control$iter - B_control$warmup
+  
+  probs_length <- B_length * M
+  
   for(i in 1:ngroup){
     
     ft_i <- ft[[i]]
     
     ft_probs_i <- list()
-    ft_probs_i[[1]] <- rep(1, M)
+    ft_probs_i[[1]] <- rep(1, probs_length)#rep(1, M)
     
     ft_batch_data_quad_i <- ft_batch_data_quad[((i-1)*Q+1):(i*Q), , drop = FALSE]
     c_quad_i <- c_quad[((i-1)*Q+1):(i*Q), , drop = FALSE]
@@ -351,83 +358,89 @@ predSurv_jm_supp <- function(object,
       
       for(k in 1:M){
         
-        if(is.null(deriv)){
-          prob_upper <- surv_prob_calc(t = ft_i[j],
-                                       ft_batch_data_quad_i = ft_batch_data_quad_i,
-                                       c_quad_i = c_quad_i,
-                                       timeVar = timeVar, 
-                                       log_lambda = log_lambda[k, ],
-                                       log_nu = log_nu[k, ],
-                                       omega = omega[k, ],
-                                       eta = eta[k, ],
-                                       alpha = alpha[k, ],
-                                       B = B_sampled[[k]][i, ],
-                                       wt = wt, 
-                                       pt = pt,
-                                       Q = Q,
-                                       bh = "weibull",
-                                       deriv = deriv,
-                                       fixed_long = object$fixed_long,
-                                       random_long = object$random_long)
-          prob_lower <- surv_prob_calc(t = ft_i[1], 
-                                       ft_batch_data_quad_i = ft_batch_data_quad_i,
-                                       c_quad_i = c_quad_i,
-                                       timeVar = timeVar, 
-                                       log_lambda = log_lambda[k, ],
-                                       log_nu = log_nu[k, ],
-                                       omega = omega[k, ],
-                                       eta = eta[k, ],
-                                       alpha = alpha[k, ],
-                                       B = B_sampled[[k]][i, ],
-                                       wt = wt, 
-                                       pt = pt,
-                                       Q = Q,
-                                       bh = "weibull",
-                                       deriv = deriv,
-                                       fixed_long = object$fixed_long,
-                                       random_long = object$random_long)
-        }else{
-          prob_upper <- surv_prob_calc(t = ft_i[j],
-                                       ft_batch_data_quad_i = ft_batch_data_quad_i,
-                                       c_quad_i = c_quad_i,
-                                       timeVar = timeVar, 
-                                       log_lambda = log_lambda[k, ],
-                                       log_nu = log_nu[k, ],
-                                       omega = omega[k, ],
-                                       eta1 = eta1[k, ],
-                                       eta2 = eta2[k, ],
-                                       alpha = alpha[k, ],
-                                       B = B_sampled[[k]][i, ],
-                                       wt = wt, 
-                                       pt = pt,
-                                       Q = Q,
-                                       bh = "weibull",
-                                       deriv = deriv,
-                                       fixed_long = object$fixed_long,
-                                       random_long = object$random_long)
-          prob_lower <- surv_prob_calc(t = ft_i[1], 
-                                       ft_batch_data_quad_i = ft_batch_data_quad_i,
-                                       c_quad_i = c_quad_i,
-                                       timeVar = timeVar, 
-                                       log_lambda = log_lambda[k, ],
-                                       log_nu = log_nu[k, ],
-                                       omega = omega[k, ],
-                                       eta1 = eta1[k, ],
-                                       eta2 = eta2[k, ],
-                                       alpha = alpha[k, ],
-                                       B = B_sampled[[k]][i, ],
-                                       wt = wt, 
-                                       pt = pt,
-                                       Q = Q,
-                                       bh = "weibull",
-                                       deriv = deriv,
-                                       fixed_long = object$fixed_long,
-                                       random_long = object$random_long)
+        for(kk in 1:B_length){
+          
+          if(is.null(deriv)){
+            prob_upper <- surv_prob_calc(t = ft_i[j],
+                                         ft_batch_data_quad_i = ft_batch_data_quad_i,
+                                         c_quad_i = c_quad_i,
+                                         timeVar = timeVar, 
+                                         log_lambda = log_lambda[k, ],
+                                         log_nu = log_nu[k, ],
+                                         omega = omega[k, ],
+                                         eta = eta[k, ],
+                                         alpha = alpha[k, ],
+                                         B = as.matrix(B_sampled[[k]][,i,][kk,]),#B_sampled[[k]][i, ],
+                                         wt = wt, 
+                                         pt = pt,
+                                         Q = Q,
+                                         bh = "weibull",
+                                         deriv = deriv,
+                                         fixed_long = object$fixed_long,
+                                         random_long = object$random_long)
+            prob_lower <- surv_prob_calc(t = ft_i[1], 
+                                         ft_batch_data_quad_i = ft_batch_data_quad_i,
+                                         c_quad_i = c_quad_i,
+                                         timeVar = timeVar, 
+                                         log_lambda = log_lambda[k, ],
+                                         log_nu = log_nu[k, ],
+                                         omega = omega[k, ],
+                                         eta = eta[k, ],
+                                         alpha = alpha[k, ],
+                                         B = as.matrix(B_sampled[[k]][,i,][kk,]),#B = B_sampled[[k]][i, ],
+                                         wt = wt, 
+                                         pt = pt,
+                                         Q = Q,
+                                         bh = "weibull",
+                                         deriv = deriv,
+                                         fixed_long = object$fixed_long,
+                                         random_long = object$random_long)
+          }else{
+            prob_upper <- surv_prob_calc(t = ft_i[j],
+                                         ft_batch_data_quad_i = ft_batch_data_quad_i,
+                                         c_quad_i = c_quad_i,
+                                         timeVar = timeVar, 
+                                         log_lambda = log_lambda[k, ],
+                                         log_nu = log_nu[k, ],
+                                         omega = omega[k, ],
+                                         eta1 = eta1[k, ],
+                                         eta2 = eta2[k, ],
+                                         alpha = alpha[k, ],
+                                         B = as.matrix(B_sampled[[k]][,i,][kk,]),#B = B_sampled[[k]][i, ],
+                                         wt = wt, 
+                                         pt = pt,
+                                         Q = Q,
+                                         bh = "weibull",
+                                         deriv = deriv,
+                                         fixed_long = object$fixed_long,
+                                         random_long = object$random_long)
+            prob_lower <- surv_prob_calc(t = ft_i[1], 
+                                         ft_batch_data_quad_i = ft_batch_data_quad_i,
+                                         c_quad_i = c_quad_i,
+                                         timeVar = timeVar, 
+                                         log_lambda = log_lambda[k, ],
+                                         log_nu = log_nu[k, ],
+                                         omega = omega[k, ],
+                                         eta1 = eta1[k, ],
+                                         eta2 = eta2[k, ],
+                                         alpha = alpha[k, ],
+                                         B = as.matrix(B_sampled[[k]][,i,][kk,]),#B = B_sampled[[k]][i, ],
+                                         wt = wt, 
+                                         pt = pt,
+                                         Q = Q,
+                                         bh = "weibull",
+                                         deriv = deriv,
+                                         fixed_long = object$fixed_long,
+                                         random_long = object$random_long)
+          }
+          
+          #ft_probs_i_k <- c(ft_probs_i_k, prob_upper/prob_lower)
+          ft_probs_i_k <- c(ft_probs_i_k, exp(prob_upper-prob_lower))
+        }
+          
         }
         
-        #ft_probs_i_k <- c(ft_probs_i_k, prob_upper/prob_lower)
-        ft_probs_i_k <- c(ft_probs_i_k, exp(prob_upper-prob_lower))
-      }
+
       ft_probs_i[[j]] <- ft_probs_i_k
     }
     
