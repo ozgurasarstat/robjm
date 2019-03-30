@@ -13,6 +13,7 @@ predSurv_jm <- function(object,
                         newdata, 
                         last_time = "surv_time", 
                         lm_time = NULL,
+                        Q_pred = NULL,
                         forecast = list(h = 5, n = 5), 
                         B_control = list(iter = 400, 
                                          warmup = 200, 
@@ -46,7 +47,11 @@ predSurv_jm <- function(object,
   }
   
   ## Gauss-Legendre stuff
-  Q <- object$Q
+  if(is.null(Q_pred)){
+    Q <- object$Q
+  }else{
+    Q <- Q_pred
+  }
   gl_quad <- statmod::gauss.quad(Q)
   wt <- gl_quad$weights
   pt <- gl_quad$nodes
