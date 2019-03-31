@@ -13,11 +13,11 @@ predSurv_jm <- function(object,
                         newdata, 
                         last_time = "surv_time", 
                         lm_time = NULL,
-                        Q_pred = NULL,
                         forecast = list(h = 5, n = 5), 
                         B_control = list(iter = 400, 
                                          warmup = 200, 
                                          chains = 1, 
+                                         cores = 1,
                                          adapt_delta = 0.8, 
                                          max_treedepth = 10),
                         batch_control = list(size = 100, 
@@ -47,11 +47,7 @@ predSurv_jm <- function(object,
   }
   
   ## Gauss-Legendre stuff
-  if(is.null(Q_pred)){
-    Q <- object$Q
-  }else{
-    Q <- Q_pred
-  }
+  Q <- object$Q
   gl_quad <- statmod::gauss.quad(Q)
   wt <- gl_quad$weights
   pt <- gl_quad$nodes
