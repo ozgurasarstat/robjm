@@ -83,6 +83,39 @@ combine_pred <- function(x, iterations, nsubj, chunk_sizes){
 
 }
 
+#' Combine B_samples
+combine_bsamples <- function(x, iterations, nsubj, chunk_sizes){
+  
+  ndraw <- length(x[[1]]$B_sampled)
+  
+  out <- list()
+  
+  for(i in 1:iterations){
+    
+    for(ii in 1:chunk_sizes[i]){
+      
+      out_ii <- list()
+      
+      for(iii in 1:ndraw){
+        
+        out_ii[[iii]] <- pred_out[[i]]$B_sampled[[iii]][, ii, ]
+        
+      }
+      
+      out <- c(out, out_ii)
+    }
+    
+  }
+  
+  out2 <- list()
+  
+  for(i in 1:nsubj){
+    out2[[i]] <- out[((i-1)*1000+1):(i*1000)]
+  }
+  
+  return(out2)
+  
+}
 
 # inverse of logit
 expit <- function(x){
@@ -121,4 +154,3 @@ prep_data_indv_pred <- function(data, id, timeVar){
   return(data_out)
   
 }
-

@@ -466,7 +466,7 @@ predSurv_jm_supp <- function(object,
   
   ft_table <- do.call(rbind, ft_table)
   
-  out <- list(ft_probs = ft_probs, ft_table = ft_table)
+  out <- list(ft_probs = ft_probs, ft_table = ft_table, B_sampled = B_sampled)
   return(out)
   
 }
