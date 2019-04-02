@@ -98,7 +98,7 @@ combine_bsamples <- function(x, iterations, nsubj, chunk_sizes){
       
       for(iii in 1:ndraw){
         
-        out_ii[[iii]] <- pred_out[[i]]$B_sampled[[iii]][, ii, ]
+        out_ii[[iii]] <- x[[i]]$B_sampled[[iii]][, ii, ]
         
       }
       
