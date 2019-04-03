@@ -27,10 +27,11 @@ predSurv_jm <- function(object,
                         ...){
 
   ## be sure that B_control has 5 elements
-  if(length(B_control) < 6){
+  if(length(B_control) < 7){
     B_control_f <- list(iter = 500, warmup = 250, chains = 1, cores = 1,
+                        init = "random",
                         adapt_delta = 0.8, max_treedepth = 10)
-    for(i in 1:6){
+    for(i in 1:7){
       if(!(names(B_control_f)[i] %in% names(B_control))){
         B_control[names(B_control_f)[i]] <- B_control_f[i]
       }
