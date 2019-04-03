@@ -240,6 +240,7 @@ predSurv_jm_supp <- function(object,
                         warmup = B_control$warmup,
                         chains = B_control$chains,
                         cores = B_control$cores,
+                        init = B_control$init,
                         control = list(adapt_delta = B_control$adapt_delta, 
                                        max_treedepth = B_control$max_treedepth),
                         pars = c("B")
@@ -316,6 +317,7 @@ predSurv_jm_supp <- function(object,
                         warmup = B_control$warmup,
                         chains = B_control$chains,
                         cores = B_control$cores,
+                        init = B_control$init,
                         control = list(adapt_delta = B_control$adapt_delta, 
                                        max_treedepth = B_control$max_treedepth)
                         )
