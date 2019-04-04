@@ -110,7 +110,7 @@ combine_bsamples <- function(x, iterations, nsubj, chunk_sizes){
   out2 <- list()
   
   for(i in 1:nsubj){
-    out2[[i]] <- out[((i-1)*1000+1):(i*1000)]
+    out2[[i]] <- out[((i-1)*ndraw+1):(i*ndraw)]
   }
   
   return(out2)
