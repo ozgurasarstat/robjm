@@ -24,6 +24,7 @@ predSurv_jm <- function(object,
                         batch_control = list(size = 100, 
                                              cores = 1),
                         probs = c(0.025, 0.5, 0.975),
+                        return_bsamples = FALSE,
                         ...){
 
   ## be sure that B_control has 5 elements
@@ -129,12 +130,15 @@ predSurv_jm <- function(object,
                       nsubj = nsubj,
                       chunk_sizes = chunk_sizes)
   
-  out$bsamples <- combine_bsamples(x  = pred_out, 
-                                   iterations = iterations, 
-                                   nsubj = nsubj,
-                                   chunk_sizes = chunk_sizes)
-  
-  names(out$bsamples) <- names(out$samples)
+  if(return_bsamples){
+    out$bsamples <- combine_bsamples(x  = pred_out, 
+                                     iterations = iterations, 
+                                     nsubj = nsubj,
+                                     chunk_sizes = chunk_sizes)
+    
+    names(out$bsamples) <- names(out$samples)    
+  }
+
   return(out)
   
 }
