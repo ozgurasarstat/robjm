@@ -85,7 +85,8 @@ predSurv_jm <- function(object,
                                         pt = pt,
                                         last_time = last_time,
                                         lm_time = lm_time,
-                                        probs = probs)
+                                        probs = probs,
+                                        return_bsamples = return_bsamples)
       
     }#for(i in 1:iterations){
     
@@ -114,8 +115,8 @@ predSurv_jm <- function(object,
                                  pt = pt,
                                  last_time = last_time,
                                  lm_time = lm_time,
-                                 probs = probs
-                                 )
+                                 probs = probs,
+                                 return_bsamples = return_bsamples)
       return(pred_i)
       
     }

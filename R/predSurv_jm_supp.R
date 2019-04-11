@@ -7,7 +7,8 @@ predSurv_jm_supp <- function(object,
                              pt,
                              last_time,
                              lm_time,
-                             probs){
+                             probs,
+                             return_bsamples){
   
   ## make sure that first row for everyone is prob of 1 at stime
   forecast$n <- forecast$n + 1
@@ -468,7 +469,11 @@ predSurv_jm_supp <- function(object,
   
   ft_table <- do.call(rbind, ft_table)
   
-  out <- list(ft_probs = ft_probs, ft_table = ft_table, B_sampled = B_sampled)
+  if(return_bsamples){
+    out <- list(ft_probs = ft_probs, ft_table = ft_table, B_sampled = B_sampled)
+  }else{
+    out <- list(ft_probs = ft_probs, ft_table = ft_table)
+  }
   return(out)
   
 }
