@@ -154,3 +154,22 @@ prep_data_indv_pred <- function(data, id, timeVar){
   return(data_out)
   
 }
+
+
+#' Sub-sample Bsamples
+
+subsample_B <- function(x, nsel_b){
+  
+  length_x <- length(x)
+  length_b <- dim(x[[1]])[1]
+  ind_sel <- lapply(1:length_x, function(i) sample(1:length_b, nsel_b, replace = FALSE))
+  
+  out <- list()
+  
+  for(i in 1:length_x){
+    out[[i]] <- x[[i]][ind_sel[[i]], , , drop = FALSE]
+  }
+  
+  return(out)
+  
+}

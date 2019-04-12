@@ -19,20 +19,22 @@ predSurv_jm <- function(object,
                                          chains = 1, 
                                          cores = 1,
                                          init = "random",
+                                         nsel_b = "all",
                                          adapt_delta = 0.8, 
-                                         max_treedepth = 10),
+                                         max_treedepth = 10
+                                         ),
                         batch_control = list(size = 100, 
                                              cores = 1),
                         probs = c(0.025, 0.5, 0.975),
                         return_bsamples = FALSE,
                         ...){
 
-  ## be sure that B_control has 5 elements
-  if(length(B_control) < 7){
-    B_control_f <- list(iter = 500, warmup = 250, chains = 1, cores = 1,
-                        init = "random",
+  ## be sure that B_control has 7 elements
+  if(length(B_control) < 8){
+    B_control_f <- list(iter = 400, warmup = 200, chains = 1, cores = 1,
+                        init = "random", nsel_B = "all",
                         adapt_delta = 0.8, max_treedepth = 10)
-    for(i in 1:7){
+    for(i in 1:8){
       if(!(names(B_control_f)[i] %in% names(B_control))){
         B_control[names(B_control_f)[i]] <- B_control_f[i]
       }

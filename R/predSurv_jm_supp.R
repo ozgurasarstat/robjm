@@ -328,6 +328,10 @@ predSurv_jm_supp <- function(object,
     }
   }
   
+  if(B_control$nsel_b != "all"){
+    B_sampled <- subsample_B(x = B_sampled, nsel_b = B_control$nsel_b)
+  }
+  
   ##
   ## the calculate the survival probabilities by pluggin in the ratio 
   ##
@@ -343,7 +347,11 @@ predSurv_jm_supp <- function(object,
   ft_probs <- list()
   
   ## number of B samples
-  B_length <- B_control$iter - B_control$warmup
+  if(B_control$nsel_b == "all"){
+    B_length <- B_control$iter - B_control$warmup
+  }else{
+    B_length <- B_control$nsel_b
+  }
   
   probs_length <- B_length * M
   
@@ -375,7 +383,7 @@ predSurv_jm_supp <- function(object,
                                          omega = omega[k, ],
                                          eta = eta[k, ],
                                          alpha = alpha[k, ],
-                                         B = B_sampled[[k]][,i,][kk,],#B_sampled[[k]][i, ],
+                                         B = switch(B_length == 1, B_sampled[[k]][,i,], B_sampled[[k]][,i,][kk,]),#B_sampled[[k]][i, ],
                                          wt = wt, 
                                          pt = pt,
                                          Q = Q,
@@ -392,7 +400,7 @@ predSurv_jm_supp <- function(object,
                                          omega = omega[k, ],
                                          eta = eta[k, ],
                                          alpha = alpha[k, ],
-                                         B = B_sampled[[k]][,i,][kk,],#B = B_sampled[[k]][i, ],
+                                         B = switch(B_length == 1, B_sampled[[k]][,i,], B_sampled[[k]][,i,][kk,]),#B_sampled[[k]][i, ],
                                          wt = wt, 
                                          pt = pt,
                                          Q = Q,
@@ -411,7 +419,7 @@ predSurv_jm_supp <- function(object,
                                          eta1 = eta1[k, ],
                                          eta2 = eta2[k, ],
                                          alpha = alpha[k, ],
-                                         B = B_sampled[[k]][,i,][kk,],#B = B_sampled[[k]][i, ],
+                                         B = switch(B_length == 1, B_sampled[[k]][,i,], B_sampled[[k]][,i,][kk,]),#B_sampled[[k]][i, ],
                                          wt = wt, 
                                          pt = pt,
                                          Q = Q,
@@ -429,7 +437,7 @@ predSurv_jm_supp <- function(object,
                                          eta1 = eta1[k, ],
                                          eta2 = eta2[k, ],
                                          alpha = alpha[k, ],
-                                         B = B_sampled[[k]][,i,][kk,],#B = B_sampled[[k]][i, ],
+                                         B = switch(B_length == 1, B_sampled[[k]][,i,], B_sampled[[k]][,i,][kk,]),#B_sampled[[k]][i, ],
                                          wt = wt, 
                                          pt = pt,
                                          Q = Q,
