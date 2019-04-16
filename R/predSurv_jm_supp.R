@@ -247,7 +247,7 @@ predSurv_jm_supp <- function(object,
                         pars = c("B")
                         )
       #B_sampled[[i]] <- matrix(rstan::summary(B_res)$summary[1:(ngroup*q), "50%"], ncol = q, byrow = T)
-      B_sampled[[i]] <- rstan::extract(B_res)[["B"]] %>% subsample_B(nsel_b = nsel_b)
+      B_sampled[[i]] <- rstan::extract(B_res)[["B"]] %>% subsample_B(nsel_b = B_control$nsel_b)
     }  
   }
   
@@ -324,7 +324,7 @@ predSurv_jm_supp <- function(object,
                         )
       
       #B_sampled[[i]] <- matrix(rstan::summary(B_res)$summary[1:(ngroup*q), "50%"], ncol = q, byrow = T)
-      B_sampled[[i]] <- rstan::extract(B_res)[["B"]] %>% subsample_B(nsel_b = nsel_b)
+      B_sampled[[i]] <- rstan::extract(B_res)[["B"]] %>% subsample_B(nsel_b = B_control$nsel_b)
     }
   }
   
@@ -381,7 +381,7 @@ predSurv_jm_supp <- function(object,
                                          omega = omega[k, ],
                                          eta = eta[k, ],
                                          alpha = alpha[k, ],
-                                         B = switch(B_length == 1, B_sampled[[k]][i, ], B_sampled[[k]][[i]][kk,]),
+                                         B = switch(ifelse(B_length == 1, 1, 2), B_sampled[[k]][i, ], B_sampled[[k]][[i]][kk,]),
                                          #B = switch(B_length == 1, B_sampled[[k]][,i,], B_sampled[[k]][,i,][kk,]),
                                          #B = B_sampled[[k]][i, ],
                                          wt = wt, 
@@ -400,7 +400,7 @@ predSurv_jm_supp <- function(object,
                                          omega = omega[k, ],
                                          eta = eta[k, ],
                                          alpha = alpha[k, ],
-                                         B = switch(B_length == 1, B_sampled[[k]][i, ], B_sampled[[k]][[i]][kk,]),
+                                         B = switch(ifelse(B_length == 1, 1, 2), B_sampled[[k]][i, ], B_sampled[[k]][[i]][kk,]),
                                          #B = switch(B_length == 1, B_sampled[[k]][,i,], B_sampled[[k]][,i,][kk,]),
                                          #B = B_sampled[[k]][i, ],
                                          wt = wt, 
@@ -421,7 +421,7 @@ predSurv_jm_supp <- function(object,
                                          eta1 = eta1[k, ],
                                          eta2 = eta2[k, ],
                                          alpha = alpha[k, ],
-                                         B = switch(B_length == 1, B_sampled[[k]][i, ], B_sampled[[k]][[i]][kk,]),
+                                         B = switch(ifelse(B_length == 1, 1, 2), B_sampled[[k]][i, ], B_sampled[[k]][[i]][kk,]),
                                          #B = switch(B_length == 1, B_sampled[[k]][,i,], B_sampled[[k]][,i,][kk,]),
                                          #B = B_sampled[[k]][i, ],
                                          wt = wt, 
@@ -441,7 +441,7 @@ predSurv_jm_supp <- function(object,
                                          eta1 = eta1[k, ],
                                          eta2 = eta2[k, ],
                                          alpha = alpha[k, ],
-                                         B = switch(B_length == 1, B_sampled[[k]][i, ], B_sampled[[k]][[i]][kk,]),
+                                         B = switch(ifelse(B_length == 1, 1, 2), B_sampled[[k]][i, ], B_sampled[[k]][[i]][kk,]),
                                          #B = switch(B_length == 1, B_sampled[[k]][,i,], B_sampled[[k]][,i,][kk,]),
                                          #B = B_sampled[[k]][i, ],
                                          wt = wt, 
