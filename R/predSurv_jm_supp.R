@@ -246,8 +246,8 @@ predSurv_jm_supp <- function(object,
                                        max_treedepth = B_control$max_treedepth),
                         pars = c("B")
                         )
-      B_sampled[[i]] <- matrix(rstan::summary(B_res)$summary[1:(ngroup*q), "50%"], ncol = q, byrow = T)
-      #B_sampled[[i]] <- rstan::extract(B_res)[["B"]]
+      #B_sampled[[i]] <- matrix(rstan::summary(B_res)$summary[1:(ngroup*q), "50%"], ncol = q, byrow = T)
+      B_sampled[[i]] <- rstan::extract(B_res)[["B"]] %>% subsample_B(nsel_b = nsel_b)
     }  
   }
   
@@ -323,14 +323,10 @@ predSurv_jm_supp <- function(object,
                                        max_treedepth = B_control$max_treedepth)
                         )
       
-      B_sampled[[i]] <- matrix(rstan::summary(B_res)$summary[1:(ngroup*q), "50%"], ncol = q, byrow = T)
-      #B_sampled[[i]] <- rstan::extract(B_res)[["B"]]
+      #B_sampled[[i]] <- matrix(rstan::summary(B_res)$summary[1:(ngroup*q), "50%"], ncol = q, byrow = T)
+      B_sampled[[i]] <- rstan::extract(B_res)[["B"]] %>% subsample_B(nsel_b = nsel_b)
     }
   }
-  
-  #if(B_control$nsel_b != "all"){
-  #  B_sampled <- subsample_B(x = B_sampled, nsel_b = B_control$nsel_b)
-  #}
   
   ##
   ## the calculate the survival probabilities by pluggin in the ratio 
@@ -347,15 +343,16 @@ predSurv_jm_supp <- function(object,
   ft_probs <- list()
   
   ## number of B samples
-  #if(B_control$nsel_b == "all"){
-  #  B_length <- B_control$iter - B_control$warmup
-  #}else{
-  #  B_length <- B_control$nsel_b
-  #}
+  if(B_control$nsel_b == "all"){
+    B_length <- B_control$iter - B_control$warmup
+  }else if(B_control$nsel_b %in% c("mean", "median")){
+    B_length <- 1
+  }else{
+    B_length <- B_control$nsel_b
+  }
   
-  #probs_length <- B_length * M
-  probs_length <- M
-  
+  probs_length <- B_length * M
+
   for(i in 1:ngroup){
     
     ft_i <- ft[[i]]
@@ -372,7 +369,7 @@ predSurv_jm_supp <- function(object,
       
       for(k in 1:M){
         
-        #for(kk in 1:B_length){
+        for(kk in 1:B_length){
           
           if(is.null(deriv)){
             prob_upper <- surv_prob_calc(t = ft_i[j],
@@ -384,8 +381,9 @@ predSurv_jm_supp <- function(object,
                                          omega = omega[k, ],
                                          eta = eta[k, ],
                                          alpha = alpha[k, ],
+                                         B = switch(B_length == 1, B_sampled[[k]][i, ], B_sampled[[k]][[i]][kk,]),
                                          #B = switch(B_length == 1, B_sampled[[k]][,i,], B_sampled[[k]][,i,][kk,]),
-                                         B_sampled[[k]][i, ],
+                                         #B = B_sampled[[k]][i, ],
                                          wt = wt, 
                                          pt = pt,
                                          Q = Q,
@@ -402,8 +400,9 @@ predSurv_jm_supp <- function(object,
                                          omega = omega[k, ],
                                          eta = eta[k, ],
                                          alpha = alpha[k, ],
+                                         B = switch(B_length == 1, B_sampled[[k]][i, ], B_sampled[[k]][[i]][kk,]),
                                          #B = switch(B_length == 1, B_sampled[[k]][,i,], B_sampled[[k]][,i,][kk,]),
-                                         B_sampled[[k]][i, ],
+                                         #B = B_sampled[[k]][i, ],
                                          wt = wt, 
                                          pt = pt,
                                          Q = Q,
@@ -422,8 +421,9 @@ predSurv_jm_supp <- function(object,
                                          eta1 = eta1[k, ],
                                          eta2 = eta2[k, ],
                                          alpha = alpha[k, ],
+                                         B = switch(B_length == 1, B_sampled[[k]][i, ], B_sampled[[k]][[i]][kk,]),
                                          #B = switch(B_length == 1, B_sampled[[k]][,i,], B_sampled[[k]][,i,][kk,]),
-                                         B_sampled[[k]][i, ],
+                                         #B = B_sampled[[k]][i, ],
                                          wt = wt, 
                                          pt = pt,
                                          Q = Q,
@@ -441,8 +441,9 @@ predSurv_jm_supp <- function(object,
                                          eta1 = eta1[k, ],
                                          eta2 = eta2[k, ],
                                          alpha = alpha[k, ],
+                                         B = switch(B_length == 1, B_sampled[[k]][i, ], B_sampled[[k]][[i]][kk,]),
                                          #B = switch(B_length == 1, B_sampled[[k]][,i,], B_sampled[[k]][,i,][kk,]),
-                                         B_sampled[[k]][i, ],
+                                         #B = B_sampled[[k]][i, ],
                                          wt = wt, 
                                          pt = pt,
                                          Q = Q,
@@ -454,7 +455,7 @@ predSurv_jm_supp <- function(object,
           
           #ft_probs_i_k <- c(ft_probs_i_k, prob_upper/prob_lower)
           ft_probs_i_k <- c(ft_probs_i_k, exp(prob_upper - prob_lower))
-        #}
+        }
           
         }
         

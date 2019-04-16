@@ -14,8 +14,8 @@ predSurv_jm <- function(object,
                         last_time = "surv_time", 
                         lm_time = NULL,
                         forecast = list(h = 5, n = 5), 
-                        B_control = list(iter = 400, 
-                                         warmup = 200, 
+                        B_control = list(iter = 40, 
+                                         warmup = 20, 
                                          chains = 1, 
                                          cores = 1,
                                          init = "random",
@@ -31,7 +31,7 @@ predSurv_jm <- function(object,
 
   ## be sure that B_control has 7 elements
   if(length(B_control) < 8){
-    B_control_f <- list(iter = 400, warmup = 200, chains = 1, cores = 1,
+    B_control_f <- list(iter = 40, warmup = 20, chains = 1, cores = 1,
                         init = "random", nsel_B = "all",
                         adapt_delta = 0.8, max_treedepth = 10)
     for(i in 1:8){

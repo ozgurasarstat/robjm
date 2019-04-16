@@ -158,18 +158,51 @@ prep_data_indv_pred <- function(data, id, timeVar){
 
 #' Sub-sample Bsamples
 
+# subsample_B <- function(x, nsel_b){
+#   
+#   length_x <- length(x)
+#   length_b <- dim(x[[1]])[1]
+#   ind_sel <- lapply(1:length_x, function(i) sample(1:length_b, nsel_b, replace = FALSE))
+#   
+#   out <- list()
+#   
+#   for(i in 1:length_x){
+#     out[[i]] <- x[[i]][ind_sel[[i]], , , drop = FALSE]
+#   }
+#   
+#   return(out)
+#   
+# }
+
+#' Sub-sample Bsamples applied one by one
+
 subsample_B <- function(x, nsel_b){
   
-  length_x <- length(x)
-  length_b <- dim(x[[1]])[1]
-  ind_sel <- lapply(1:length_x, function(i) sample(1:length_b, nsel_b, replace = FALSE))
+  dim_x <- dim(x)
+  nsubj <- dim_x[2]
+  q <- dim_x[3]
+  b_length <- dim_x[1]
   
-  out <- list()
-  
-  for(i in 1:length_x){
-    out[[i]] <- x[[i]][ind_sel[[i]], , , drop = FALSE]
+  if(nsel_b %in% c("mean", "median", 1)){
+    out <- matrix(NA, nsubj, q)
+    for(i in 1:nsubj){
+      if(nsel_b %in% c("mean", "median")){
+        out[i, ] <- x[, i, ] %>% apply(MARGIN = 2, FUN = nsel_b)
+      }else{
+        out[i, ] <- x[sample(1:b_length, nsel_b, replace = FALSE), i, ]
+      }
+    }
+  }else{# if nsel_b > 1, not mean or median
+    out <- list()
+    for(i in 1:nsubj){
+      if(nsel_b == "all"){
+        out[[i]] <- x[, i, ]
+      }else{
+        out[[i]] <- x[sample(1:b_length, nsel_b, replace = FALSE), i, ]
+      }
+    }    
   }
-  
+
   return(out)
   
 }
