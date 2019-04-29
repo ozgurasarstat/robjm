@@ -72,14 +72,14 @@ simulate_data <- function(nsubj = 100,
   
   # create W
   if(model == "nor_nor"){
-    W <- rep(1, nsubj * m)
+    W <- rep(1, ntotal)
   }else if(model == "mod1"){
     W <- rep(V_indv, each = m)
   }else if(model == "mod2"){
     W_indv <- rgamma(nsubj, shape = delta/2, rate = delta/2)              
     W <- rep(W_indv, each = m)  
   }else if(model == "mod3"){
-    W <- rgamma(nsubj * m, shape = delta/2, rate = delta/2)
+    W <- rgamma(ntotal, shape = delta/2, rate = delta/2)
   }else if(model == "tv"){
     t_ext <- rep(t, nsubj)                                       
     a_spline <- ns(t_ext, df = (knots_tv + 1))                              
