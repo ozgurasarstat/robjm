@@ -82,8 +82,8 @@ simulate_data <- function(nsubj = 100,
     W <- rgamma(ntotal, shape = delta/2, rate = delta/2)
   }else if(model == "tv"){
     t_ext <- rep(t, nsubj)                                       
-    a_spline <- ns(t_ext, df = (knots_tv + 1))                              
-    delta_ext<- delta0 * exp(a_spline %*% beta)
+    a_spline  <- ns(t_ext, df = (knots_tv + 1))                              
+    delta_ext <- delta0 * exp(a_spline %*% beta)
     W <- rep(NA, ntotal)
     for (i in 1 : ntotal){
       W[i] <- rgamma(1, shape = delta_ext[i]/2, rate = delta_ext[i]/2)
