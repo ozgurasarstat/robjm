@@ -108,7 +108,7 @@ simulate_data <- function(nsubj = 100,
   )
 
   # survival model covariates
-  c <- matrix(x1_ext, ncol = 1)
+  #c <- matrix(x1_ext, ncol = 1)
   data$c <- x1_ext
 
   # hazard and survival probabilities
