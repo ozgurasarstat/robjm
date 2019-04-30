@@ -12,7 +12,7 @@ simulate_data <- function(nsubj = 100,
                           model = "tv",
                           omega = c(0.5),
                           controls_time = list(t_min = 0, t_max = 5, incr = 0.01),
-                          alpha = c(1, 0.6, 0.4, 0.2),
+                          alpha = c(1, 0.4),#c(1, 0.6, 0.4, 0.2),
                           Sigma = matrix(c(0.6, 0.25, 0.25, 0.3), ncol = 2),
                           sigmasq = 0.25,
                           returns = c("repeat_data", "base_data")){
@@ -39,7 +39,8 @@ simulate_data <- function(nsubj = 100,
   x1_ext <- rep(x1, each = m)
   t_ext <- rep(t, nsubj)
   
-  x <- cbind(1, x1_ext, t_ext, x1_ext * t_ext) 
+  #x <- cbind(1, x1_ext, t_ext, x1_ext * t_ext) 
+  x <- cbind(1, t_ext)
   
   # random effects covariate matrix
   d <- Matrix::bdiag(lapply(1:nsubj, function(i) cbind(1, t)))
