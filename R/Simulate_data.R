@@ -11,7 +11,7 @@ simulate_data <- function(nsubj = 100,
                           nu = 1.2,
                           model = "tv",
                           omega = c(0.5),
-                          controls_time = list(t_min = 0, t_max = 5, a = 0.01),
+                          controls_time = list(t_min = 0, t_max = 5, incr = 0.01),
                           alpha = c(1, 0.6, 0.4, 0.2),
                           Sigma = matrix(c(0.6, 0.25, 0.25, 0.3), ncol = 2),
                           sigmasq = 0.25,
@@ -26,8 +26,8 @@ simulate_data <- function(nsubj = 100,
   # discretise time at fine intervals
   t_min <- controls_time$t_min
   t_max <- controls_time$t_max
-  a     <- controls_time$a
-  t     <- seq(t_min, t_max, a)
+  incr  <- controls_time$incr
+  t     <- seq(t_min, t_max, incr)
   m     <- length(t)
   
   # total number of observations before censoring and selection
@@ -113,7 +113,7 @@ simulate_data <- function(nsubj = 100,
 
   # hazard and survival probabilities
   data$hazard <- as.numeric(with(data, lambda * nu * time^(nu - 1) * exp(c %*% omega + cbind(Y_star, Y_star_deriv) %*% eta)))
-  a_vec <- c(1, rep(a, (m - 1)))
+  a_vec <- c(1, rep(incr, (m - 1)))
   data$surv_prob <- unlist(with(data, tapply(hazard, id, function(x) exp(- unlist(lapply(1:m, function(i) sum(a_vec[1:i] * x[1:i])))))))
   
   # select observations randomly by being sure that everyone has data at baseline, 0: non-selection, 1:selection
@@ -127,7 +127,7 @@ simulate_data <- function(nsubj = 100,
   
   # create stime and event indicator
   stime_event <- 
-    do.call(rbind, with(data_censored_event, tapply(time, id, function(x) stime_event_fun(x, t_max = t_max, a = a))))
+    do.call(rbind, with(data_censored_event, tapply(time, id, function(x) stime_event_fun(x, t_max = t_max, a = incr))))
   data_censored_event$stime <- stime_event[, 1]
   data_censored_event$event <- stime_event[, 2]
   
