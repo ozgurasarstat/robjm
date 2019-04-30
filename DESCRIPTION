@@ -9,5 +9,5 @@ Description: Estimation and prediction for joint models for longitudinal
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
-Depends: splines, rstan, magic, statmod, tidyverse, doSNOW
+Depends: splines, rstan, magic, statmod, tidyverse, doSNOW, mvtnorm, Matrix
 RoxygenNote: 6.1.0

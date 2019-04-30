@@ -17,11 +17,6 @@ simulate_data <- function(nsubj = 100,
                           sigmasq = 0.25,
                           returns = c("repeat_data", "base_data")){
 
-  # packages to be used
-  library(tidyverse)
-  library(mvtnorm)
-  library(Matrix)
-    
   # convert vectors to matrices
   eta <- matrix(eta, ncol = 1)
   beta <- matrix(beta, ncol = 1)
