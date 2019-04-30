@@ -113,8 +113,8 @@ simulate_data <- function(nsubj = 100,
 
   # hazard and survival probabilities
   data$hazard <- as.numeric(with(data, lambda * nu * time^(nu - 1) * exp(c %*% omega + cbind(Y_star, Y_star_deriv) %*% eta)))
-  a_vec <- c(1, rep(incr, (m - 1)))
-  data$surv_prob <- unlist(with(data, tapply(hazard, id, function(x) exp(- unlist(lapply(1:m, function(i) sum(a_vec[1:i] * x[1:i])))))))
+  incr_vec <- c(1, rep(incr, (m - 1)))
+  data$surv_prob <- unlist(with(data, tapply(hazard, id, function(x) exp(- unlist(lapply(1:m, function(i) sum(incr_vec[1:i] * x[1:i])))))))
   
   # select observations randomly by being sure that everyone has data at baseline, 0: non-selection, 1:selection
   data$sel <- unlist(lapply(1:nsubj, function(i) c(1, rbinom((m - 1), 1, (av_n_i - 1)/(m - 1)))))
