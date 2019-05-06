@@ -117,8 +117,8 @@ for(i in 1:ngroup){
 Bstar[i] ~ multi_normal(zero_B, Sigma);
 }
 
-V ~ inv_gamma(phi/2, phi/2);
-W ~ inv_gamma(delta/2, delta/2);
+V ~ inv_gamma(phi/2, phi/2 - 1);
+W ~ inv_gamma(delta/2, delta/2 - 1);
 
 for(i in 1:ntot){
 y[i] ~ normal(linpred[i], sigma_Z * sqrt(W[i]));

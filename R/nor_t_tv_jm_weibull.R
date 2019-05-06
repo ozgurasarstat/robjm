@@ -159,7 +159,7 @@ Omega ~ lkj_corr(priors_long[2]);
 sigma_B ~ cauchy(0, priors_long[3]);
 sigma_Z ~ cauchy(0, priors_long[4]);
 
-W ~ inv_gamma(delta/2, delta/2);
+W ~ inv_gamma(delta/2, delta/2 - 1);
 beta ~ cauchy(0, priors_long[5]);
 //prior for delta0_inv is uniform -infty, infty; constrained above
 

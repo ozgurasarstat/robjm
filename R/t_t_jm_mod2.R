@@ -158,9 +158,9 @@ Omega ~ lkj_corr(priors_long[2]);
 sigma_B ~ cauchy(0, priors_long[3]);
 sigma_Z ~ cauchy(0, priors_long[4]);
 
-V ~ inv_gamma((1/phi_inv)/2, (1/phi_inv)/2);
+V ~ inv_gamma((1/phi_inv)/2, (1/phi_inv)/2 - 1);
 //phi_inv ~ uniform(0.01, 0.5);//the prior is uniform with -infty and infty, constrained above
-W ~ inv_gamma((1/delta_inv)/2, (1/delta_inv)/2);
+W ~ inv_gamma((1/delta_inv)/2, (1/delta_inv)/2 - 1);
 //delta_inv ~ uniform(0.01, 0.5);//the prior is uniform with -infty and infty, constrained above
 
 y ~ normal(x * alpha + d_B, sigma_Z * sqrt(W_ext));
