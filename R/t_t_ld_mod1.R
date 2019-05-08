@@ -67,7 +67,7 @@ Omega ~ lkj_corr(priors[2]);
 sigma_Bstar ~ cauchy(0, priors[3]);
 sigma_Zstar ~ cauchy(0, priors[4]);
 
-V ~ inv_gamma(phi/2, phi/2 - 1);
+V ~ inv_gamma(phi/2, phi/2);
 //phi_inv ~ uniform(0.01, 05);//the prior is uniform with -infty and infty, constrained above
 
 for(i in 1:ntot) y[i] ~ normal(linpred[i], sigma_Zstar * sqrt(V[id[i]]));

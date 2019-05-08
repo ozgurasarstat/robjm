@@ -143,8 +143,8 @@ model{
 
 Bstar ~ multi_normal(zero_B, Sigma);
 
-V ~ inv_gamma(phi/2, phi/2 - 1);
-W ~ inv_gamma(delta/2, delta/2 - 1);
+V ~ inv_gamma(phi/2, phi/2);
+W ~ inv_gamma(delta/2, delta/2);
 
 y ~ normal(x * alpha + d_B, sigma_Z * sqrt(W));
 
