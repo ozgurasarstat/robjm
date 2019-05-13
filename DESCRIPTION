@@ -11,3 +11,5 @@ Encoding: UTF-8
 LazyData: true
 Depends: splines, rstan, magic, statmod, tidyverse, doSNOW, mvtnorm, Matrix
 RoxygenNote: 6.1.0
+Suggests: 
+    testthat
