@@ -57,7 +57,8 @@ fit_jm <- function(fixed_long,
                    ...){
 
   ## be sure that distribution specifications are correct
-  if(!(model %in% c("nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod2", "t_t_tv",
+  if(!(model %in% c("nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "t_nor_mod3", 
+                    "nor_t_mod2", "t_t_tv",
                     "nor_t_mod3", "nor_t_tv"))){
     stop("Model should be one of the followings: nor_nor, t_t_mod1, t_t_mod2, t_t_mod3, 
          nor_t_mod3, t_t_tv")
@@ -316,28 +317,46 @@ fit_jm <- function(fixed_long,
                     wt_quad = wt_quad,
                     t_quad = t_quad)
   
+  if(!is.null(deriv)){
+    data_stan$x_deriv_T <- x_deriv_T
+    data_stan$x_deriv_quad <- x_deriv_quad
+    data_stan$d_deriv_T <- d_deriv_T
+    data_stan$d_deriv_quad <- d_deriv_quad
+    data_stan$p_deriv <- length(deriv_alpha_ind)
+    data_stan$q_deriv <- length(deriv_B_ind)
+    data_stan$deriv_alpha_ind <- as.array(deriv_alpha_ind)
+    data_stan$deriv_B_ind <- as.array(deriv_B_ind)
+  }
+  
+  if(bh %in% c("spline", "piecewise")){
+    
+    data_stan$ncol_e <- ncol_e
+    data_stan$e <- e
+    data_stan$e_quad <- e_quad
+    
+  }
+  
+  if(model %in% c("t_t_tv", "nor_t_tv")){
+    
+    a <- splines::ns(data_long[, spline_tv[[1]]], df = (spline_tv[[2]] + 1))
+    ncol_a <- ncol(a)
+    attributes(a) <- NULL
+    a <- matrix(a, ncol = ncol_a)
+    
+    data_stan$ncol_a <- ncol_a
+    data_stan$a <- a
+    
+  }
+  
   if(model == "nor_nor"){
     
     if(bh %in% c("spline", "piecewise")){
-      
-      data_stan$ncol_e <- ncol_e
-      data_stan$e <- e
-      data_stan$e_quad <- e_quad
       
       res <- stan(model_code = nor_nor_jm, data = data_stan, ...)
       
     }else if(bh == "weibull"){
       
       if(!is.null(deriv)){
-        
-        data_stan$x_deriv_T <- x_deriv_T
-        data_stan$x_deriv_quad <- x_deriv_quad
-        data_stan$d_deriv_T <- d_deriv_T
-        data_stan$d_deriv_quad <- d_deriv_quad
-        data_stan$p_deriv <- length(deriv_alpha_ind)
-        data_stan$q_deriv <- length(deriv_B_ind)
-        data_stan$deriv_alpha_ind <- as.array(deriv_alpha_ind)
-        data_stan$deriv_B_ind <- as.array(deriv_B_ind)
         
         res <- stan(model_code = nor_nor_jm_weibull_deriv, data = data_stan, ...)
         
@@ -349,13 +368,10 @@ fit_jm <- function(fixed_long,
     
   }
   
-  if(model %in% c("t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod2", "nor_t_mod3")){
+  if(model %in% c("t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod2", "nor_t_mod3",
+                  "t_nor_mod3")){
     
   if(bh %in% c("spline", "piecewise")){
-    
-    data_stan$ncol_e <- ncol_e
-    data_stan$e <- e
-    data_stan$e_quad <- e_quad
 
     if(model == "t_t_mod1"){
       res <- stan(model_code = t_t_jm_mod1, data = data_stan, ...)
@@ -379,15 +395,6 @@ fit_jm <- function(fixed_long,
 
       if(!is.null(deriv)){
         
-        data_stan$x_deriv_T <- x_deriv_T
-        data_stan$x_deriv_quad <- x_deriv_quad
-        data_stan$d_deriv_T <- d_deriv_T
-        data_stan$d_deriv_quad <- d_deriv_quad
-        data_stan$p_deriv <- length(deriv_alpha_ind)
-        data_stan$q_deriv <- length(deriv_B_ind)
-        data_stan$deriv_alpha_ind <- as.array(deriv_alpha_ind)
-        data_stan$deriv_B_ind <- as.array(deriv_B_ind)
-        
         res <- stan(model_code = t_t_jm_mod3_weibull_deriv, data = data_stan, ...)
         
       }else{
@@ -401,27 +408,40 @@ fit_jm <- function(fixed_long,
       res <- stan(model_code = nor_t_jm_mod2_weibull, data = data_stan, ...)
     }
     if(model == "nor_t_mod3"){
-      res <- stan(model_code = nor_t_jm_mod3_weibull, data = data_stan, ...)
+
+      if(!is.null(deriv)){
+        
+        res <- stan(model_code = nor_t_jm_mod3_weibull_deriv, data = data_stan, ...)
+        
+      }else{
+        
+        res <- stan(model_code = nor_t_jm_mod3_weibull, data = data_stan, ...)
+        
+      }
+      
     }
+    
+    if(model == "t_nor_mod3"){
+      
+      if(!is.null(deriv)){
+        
+        res <- stan(model_code = t_nor_jm_mod3_weibull_deriv, data = data_stan, ...)
+        
+      }else{
+        
+        res <- stan(model_code = t_nor_jm_mod3_weibull, data = data_stan, ...)
+        
+      }
+      
+    }
+    
   }
     
  }
 
   if(model %in% c("t_t_tv", "nor_t_tv")){
-    
-    a <- splines::ns(data_long[, spline_tv[[1]]], df = (spline_tv[[2]] + 1))
-    ncol_a <- ncol(a)
-    attributes(a) <- NULL
-    a <- matrix(a, ncol = ncol_a)
-    
-    data_stan$ncol_a <- ncol_a
-    data_stan$a <- a
 
   if(bh %in% c("spline", "piecewise")){
-    
-    data_stan$ncol_e <- ncol_e
-    data_stan$e <- e
-    data_stan$e_quad <- e_quad
     
     if(model == "t_t_tv"){
       res <- stan(model_code = t_t_tv_jm, data = data_stan, ...)
