@@ -28,7 +28,7 @@
  sim_nor_nor <- simulate_data(model = "tv", 
                               nsubj = 100, 
                               av_n_i = 5,
-                              eta = c(0.2, 0),
+                              eta = c(0.2, 0/5),
                               beta = c(0, 0, 0)) 
                               
  fit_nor_nor <- fit_jm(fixed_long = Y ~ time, 
@@ -38,7 +38,7 @@
                        data_surv = sim_nor_nor$base_data,
                        id_long = "id",
                        id_surv = "id",
-                       model = "t_nor_mod3",
+                       model = "nor_t_mod3",
                        timeVar = "time",
                        chains = 2,
                        cores = 2,

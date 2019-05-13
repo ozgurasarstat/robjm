@@ -40,9 +40,15 @@ predSurv_jm_supp <- function(object,
     eta2 <- matrix(rstan::extract(object$res)$eta2)
   }
   
-  if(object$model == "t_t_mod3"){
-    phi   <- matrix(rstan::extract(object$res)$phi)
-    delta <- matrix(rstan::extract(object$res)$delta)
+  if(object$model != "nor_nor"){
+    if(object$model == "nor_t_mod3"){
+      delta <- matrix(rstan::extract(object$res)$delta)     
+    }else if(object$model == "t_nor_mod3"){
+      phi   <- matrix(rstan::extract(object$res)$phi)
+    }else if(object$model == "t_t_mod3"){
+      phi   <- matrix(rstan::extract(object$res)$phi)
+      delta <- matrix(rstan::extract(object$res)$delta)     
+    }
   }
   
   ##
@@ -177,6 +183,7 @@ predSurv_jm_supp <- function(object,
   # prepare a matrix of indices for matrices for quadratures
   Q_ind <- cbind((0:(ngroup-1))*Q+1, (1:ngroup)*Q)
   
+  ## nor nor 
   if(model == "nor_nor" & bh == "weibull"){
     
     if(is.null(deriv)){
@@ -250,7 +257,162 @@ predSurv_jm_supp <- function(object,
       B_sampled[[i]] <- rstan::extract(B_res)[["B"]] %>% subsample_B(nsel_b = B_control$nsel_b)
     }  
   }
+
+  ## nor-t mod3
+  if(model == "nor_t_mod3" & bh == "weibull"){
+    
+    if(is.null(deriv)){
+      mod <- rstan::stan_model(model_code = new_rand_eff_nor_t_mod3_jm_weibull, auto_write = TRUE)
+    }else{
+      mod <- rstan::stan_model(model_code = new_rand_eff_nor_t_mod3_jm_weibull_deriv, auto_write = TRUE)
+    }
+    
+    data_nor_t_mod3 <- list(ntot = ntot,
+                          id = as.array(l_id), 
+                          y = as.array(y), 
+                          p = p,
+                          q = q,
+                          ngroup = ngroup, 
+                          x = x, 
+                          d = d,
+                          Q = Q,
+                          ntot_quad = ntot_quad,
+                          S = as.array(S),
+                          ncol_c = ncol_c, 
+                          c = c, 
+                          c_quad = c_quad,
+                          x_T = x_T,
+                          x_quad = x_quad,
+                          d_T = d_T,
+                          d_quad = d_quad,
+                          wt_quad = wt_quad,
+                          d_ind = d_ind,
+                          Q_ind = Q_ind)
+    
+    if(!is.null(deriv)){
+      data_nor_t_mod3$x_deriv_T <- x_deriv_T
+      data_nor_t_mod3$x_deriv_quad <- x_deriv_quad
+      data_nor_t_mod3$d_deriv_T <- d_deriv_T
+      data_nor_t_mod3$d_deriv_quad <- d_deriv_quad
+      data_nor_t_mod3$p_deriv <- length(deriv_alpha_ind)
+      data_nor_t_mod3$q_deriv <- length(deriv_B_ind)
+      data_nor_t_mod3$deriv_alpha_ind <- as.array(deriv_alpha_ind)
+      data_nor_t_mod3$deriv_B_ind <- as.array(deriv_B_ind)
+    }
+    
+    B_sampled <- list()
+    
+    for(i in 1:M){
+      data_nor_t_mod3$alpha      <- as.array(alpha[i, ])
+      data_nor_t_mod3$Sigma      <- Sigma[[i]]
+      data_nor_t_mod3$sigma_Z    <- sigma_Z[i, ]
+      data_nor_t_mod3$log_lambda <- log_lambda[i, ]
+      data_nor_t_mod3$log_nu     <- log_nu[i, ]
+      data_nor_t_mod3$omega      <- as.array(omega[i, ])
+      
+      if(is.null(deriv)){
+        data_nor_t_mod3$eta <- eta[i, ]
+      }else{
+        data_nor_t_mod3$eta1 <- eta1[i, ]
+        data_nor_t_mod3$eta2 <- eta2[i, ]
+      }
+      
+      data_nor_t_mod3$delta      <- delta[i, ]
+      
+      B_res <- rstan::sampling(mod, 
+                               data = data_nor_t_mod3, 
+                               iter = B_control$iter, 
+                               warmup = B_control$warmup,
+                               chains = B_control$chains,
+                               cores = B_control$cores,
+                               init = B_control$init,
+                               control = list(adapt_delta = B_control$adapt_delta, 
+                                              max_treedepth = B_control$max_treedepth)
+      )
+      
+      #B_sampled[[i]] <- matrix(rstan::summary(B_res)$summary[1:(ngroup*q), "50%"], ncol = q, byrow = T)
+      B_sampled[[i]] <- rstan::extract(B_res)[["B"]] %>% subsample_B(nsel_b = B_control$nsel_b)
+    }
+  }
+    
+  ## t-nor mod3
+  if(model == "t_nor_mod3" & bh == "weibull"){
+    
+    if(is.null(deriv)){
+      mod <- rstan::stan_model(model_code = new_rand_eff_t_nor_mod3_jm_weibull, auto_write = TRUE)
+    }else{
+      mod <- rstan::stan_model(model_code = new_rand_eff_t_nor_mod3_jm_weibull_deriv, auto_write = TRUE)
+    }
+    
+    data_t_nor_mod3 <- list(ntot = ntot,
+                          id = as.array(l_id), 
+                          y = as.array(y), 
+                          p = p,
+                          q = q,
+                          ngroup = ngroup, 
+                          x = x, 
+                          d = d,
+                          Q = Q,
+                          ntot_quad = ntot_quad,
+                          S = as.array(S),
+                          ncol_c = ncol_c, 
+                          c = c, 
+                          c_quad = c_quad,
+                          x_T = x_T,
+                          x_quad = x_quad,
+                          d_T = d_T,
+                          d_quad = d_quad,
+                          wt_quad = wt_quad,
+                          d_ind = d_ind,
+                          Q_ind = Q_ind)
+    
+    if(!is.null(deriv)){
+      data_t_nor_mod3$x_deriv_T <- x_deriv_T
+      data_t_nor_mod3$x_deriv_quad <- x_deriv_quad
+      data_t_nor_mod3$d_deriv_T <- d_deriv_T
+      data_t_nor_mod3$d_deriv_quad <- d_deriv_quad
+      data_t_nor_mod3$p_deriv <- length(deriv_alpha_ind)
+      data_t_nor_mod3$q_deriv <- length(deriv_B_ind)
+      data_t_nor_mod3$deriv_alpha_ind <- as.array(deriv_alpha_ind)
+      data_t_nor_mod3$deriv_B_ind <- as.array(deriv_B_ind)
+    }
+    
+    B_sampled <- list()
+    
+    for(i in 1:M){
+      data_t_nor_mod3$alpha      <- as.array(alpha[i, ])
+      data_t_nor_mod3$Sigma      <- Sigma[[i]]
+      data_t_nor_mod3$sigma_Z    <- sigma_Z[i, ]
+      data_t_nor_mod3$log_lambda <- log_lambda[i, ]
+      data_t_nor_mod3$log_nu     <- log_nu[i, ]
+      data_t_nor_mod3$omega      <- as.array(omega[i, ])
+      
+      if(is.null(deriv)){
+        data_t_nor_mod3$eta <- eta[i, ]
+      }else{
+        data_t_nor_mod3$eta1 <- eta1[i, ]
+        data_t_nor_mod3$eta2 <- eta2[i, ]
+      }
+      
+      data_t_nor_mod3$phi        <- phi[i, ]
+
+      B_res <- rstan::sampling(mod, 
+                               data = data_t_nor_mod3, 
+                               iter = B_control$iter, 
+                               warmup = B_control$warmup,
+                               chains = B_control$chains,
+                               cores = B_control$cores,
+                               init = B_control$init,
+                               control = list(adapt_delta = B_control$adapt_delta, 
+                                              max_treedepth = B_control$max_treedepth)
+      )
+      
+      #B_sampled[[i]] <- matrix(rstan::summary(B_res)$summary[1:(ngroup*q), "50%"], ncol = q, byrow = T)
+      B_sampled[[i]] <- rstan::extract(B_res)[["B"]] %>% subsample_B(nsel_b = B_control$nsel_b)
+    }
+  }
   
+  ## t-t mod3
   if(model == "t_t_mod3" & bh == "weibull"){
     
     if(is.null(deriv)){
