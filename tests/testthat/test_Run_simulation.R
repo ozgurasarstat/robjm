@@ -28,7 +28,7 @@
  sim_nor_nor <- simulate_data(model = "tv", 
                               nsubj = 100, 
                               av_n_i = 5,
-                              eta = c(0.2, 0/5),
+                              eta = c(0.2, 0.5),
                               beta = c(0, 0, 0)) 
                               
  fit_nor_nor <- fit_jm(fixed_long = Y ~ time, 
@@ -38,7 +38,7 @@
                        data_surv = sim_nor_nor$base_data,
                        id_long = "id",
                        id_surv = "id",
-                       model = "nor_t_mod3",
+                       model = "nor_nor",
                        timeVar = "time",
                        chains = 2,
                        cores = 2,
@@ -78,7 +78,7 @@
  summary(joint_fit)$sigma^2
  
  sim_nor_nor_test <- simulate_data(model = "nor_nor",  
-                                   nsubj = 2,
+                                   nsubj = 4,
                                    av_n_i = 5,
                                    eta = c(0.2, 0.5))
  
@@ -87,7 +87,8 @@
                              forecast = list(h = 5, n = 1),
                              B_control = list(iter = 30, warmup = 15, init = 0,
                                               nsel_b = 1),
-                             batch_control = list(size = 1, cores = 2))
+                             batch_control = list(size = 2, cores = 2),
+                             return_bsamples = TRUE)
  fore_nor_nor$output 
  sim_nor_nor_test$base_data
  

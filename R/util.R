@@ -84,7 +84,7 @@ combine_pred <- function(x, iterations, nsubj, chunk_sizes){
 }
 
 #' Combine B_samples
-combine_bsamples <- function(x, iterations, nsubj, chunk_sizes){
+combine_bsamples <- function(x, iterations, nsubj, chunk_sizes, B_length){
   
   ndraw <- length(x[[1]]$B_sampled)
   
@@ -98,7 +98,9 @@ combine_bsamples <- function(x, iterations, nsubj, chunk_sizes){
       
       for(iii in 1:ndraw){
         
-        out_ii[[iii]] <- x[[i]]$B_sampled[[iii]][, ii, ]
+        out_ii[[iii]] <- switch(ifelse(B_length == 1, 1, 2), 
+                                x[[i]]$B_sampled[[iii]][ii, , drop = FALSE], 
+                                x[[i]]$B_sampled[[iii]][[ii]])
         
       }
       

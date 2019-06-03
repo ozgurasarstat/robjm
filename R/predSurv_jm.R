@@ -134,10 +134,23 @@ predSurv_jm <- function(object,
                       chunk_sizes = chunk_sizes)
   
   if(return_bsamples){
-    out$bsamples <- combine_bsamples(x  = pred_out, 
+    
+    if(!is.numeric(B_control$nsel_b)){
+      if(B_control$nsel_b == "all"){
+        B_length <- B_control$iter - B_control$warmup
+      }
+      if(B_control$nsel_b %in% c("mean", "median")){
+        B_length <- 1
+      }
+    }else{
+      B_length <- B_control$nsel_b
+    }
+   
+    out$bsamples <- combine_bsamples(x = pred_out, 
                                      iterations = iterations, 
                                      nsubj = nsubj,
-                                     chunk_sizes = chunk_sizes)
+                                     chunk_sizes = chunk_sizes,
+                                     B_length = B_length)
     
     names(out$bsamples) <- names(out$samples)    
   }
