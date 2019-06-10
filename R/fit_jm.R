@@ -393,7 +393,7 @@ fit_jm <- function(fixed_long,
     } 
     if(model == "t_t_mod2"){
       
-      if(!isnull(deriv)){
+      if(!is.null(deriv)){
         res <- stan(model_code = t_t_jm_mod2_weibull_deriv, data = data_stan, ...)
       }else{
         res <- stan(model_code = t_t_jm_mod2_weibull, data = data_stan, ...)

@@ -25,72 +25,80 @@
  # ggsurvplot(km_fit, data = sim_data$base_data, risk.table = TRUE)
  
  # nor nor
- sim_nor_nor <- simulate_data(model = "tv", 
-                              nsubj = 100, 
-                              av_n_i = 5,
-                              eta = c(0.2, 0.5),
-                              beta = c(0, 0, 0)) 
+ sim_data <- simulate_data(model = "mod3", 
+                           nsubj = 500, 
+                           av_n_i = 5,
+                           eta = c(0.2, 0.5)) 
                               
- fit_nor_nor <- fit_jm(fixed_long = Y ~ time, 
-                       random_long = ~ time, 
-                       fixed_surv = cbind(stime, event) ~ c, 
-                       data_long = sim_nor_nor$repeat_data,
-                       data_surv = sim_nor_nor$base_data,
-                       id_long = "id",
-                       id_surv = "id",
-                       model = "nor_nor",
-                       timeVar = "time",
-                       chains = 2,
-                       cores = 2,
-                       iter = 2000,
-                       warmup = 1000,
-                       bh = "weibull",
-                       #pars = c("alpha", "Sigma", "sigma_Z", "sigmasq", "log_lambda", "lambda", "nu", "log_nu", "omega", "eta1", "eta2", "log_lik"),
-                         deriv = list(deriv_fixed_formula = ~ 1,
-                                      deriv_alpha_ind = 2, 
-                                      deriv_random_formula = ~ 1, 
-                                      deriv_B_ind = 2),
-                       control = list(adapt_delta = 0.8)
-                       )
- print(fit_nor_nor$res, pars = c("alpha", "Sigma", "sigmasq", "log_lambda", "log_nu", "omega", "eta1", "eta2"))
- traceplot(fit_nor_nor$res, pars = c("alpha", "Sigma", "sigmasq", "lambda", "nu", "omega", "eta1", "eta2"))
+ fit <- fit_jm(fixed_long = Y ~ time, 
+               random_long = ~ time, 
+               fixed_surv = cbind(stime, event) ~ c, 
+               data_long = sim_data$repeat_data,
+               data_surv = sim_data$base_data,
+               id_long = "id",
+               id_surv = "id",
+               model = "nor_t_mod2",
+               timeVar = "time",
+               chains = 2,
+               cores = 2,
+               iter = 2000,
+               warmup = 1000,
+               bh = "weibull",
+              #pars = c("alpha", "Sigma", "sigma_Z", "sigmasq", "log_lambda", "lambda", 
+              #         "nu", "log_nu", "omega", "eta1", "eta2", "log_lik"),
+               deriv = list(deriv_fixed_formula = ~ 1,
+                            deriv_alpha_ind = 2, 
+                            deriv_random_formula = ~ 1, 
+                            deriv_B_ind = 2),
+               control = list(adapt_delta = 0.6)
+               )
+  print(fit$res, pars = c("alpha", "Sigma", "sigmasq", "phi", "delta","log_lambda", 
+                          "log_nu", "omega", "eta1", "eta2"))
+ # traceplot(fit$res, pars = c("alpha", "Sigma", "sigmasq", "lambda", "nu", 
+ #                                     "omega", "eta1", "eta2"))
 
  # log_lik1 <- extract_log_lik(fit_nor_nor$res, merge_chains = FALSE)
  # rel_n_eff <- relative_eff(exp(log_lik1))
  # loo(log_lik1, r_eff = rel_n_eff, cores = 2)
  
- lme_fit <- lme(fixed = Y ~ time, random = ~ time|id, data = sim_nor_nor$repeat_data)
- summary(lme_fit)
+ # lme_fit <- lme(fixed = Y ~ time, random = ~ time|id, data = sim_nor_nor$repeat_data)
+ # summary(lme_fit)
+ # 
+ # cox_fit <- coxph(Surv(stime, event) ~ c, data = sim_nor_nor$base_data, x = T)
+ # summary(cox_fit)
+ # 
+ # dform <- list(fixed = ~ 1, indFixed = 2, random = ~ 1, indRandom = 2)
+ # 
+ # joint_fit <- jointModel(lme_fit, cox_fit, timeVar = "time",
+ #                         method = "weibull-PH-aGH",verbose = T, 
+ #                         #derivForm = dform, 
+ #                         #parameterization = "both",
+ #                         iter.EM = 1000)
+ # summary(joint_fit)$"CoefTable-Long"
+ # summary(joint_fit)$"CoefTable-Event"
+ # summary(joint_fit)$"D"
+ # summary(joint_fit)$sigma^2
  
- cox_fit <- coxph(Surv(stime, event) ~ c, data = sim_nor_nor$base_data, x = T)
- summary(cox_fit)
+ sim_test <- simulate_data(model = "mod3",  
+                           nsubj = 1,
+                           av_n_i = 5,
+                           eta = c(0.2, 0.5))
  
- dform <- list(fixed = ~ 1, indFixed = 2, random = ~ 1, indRandom = 2)
+ fore <- predSurv_jm(object = fit, 
+                     newdata = sim_test$repeat_data, 
+                     forecast = list(h = 5, n = 1),
+                     B_control = list(iter = 30, warmup = 15, init = 0,
+                                      nsel_b = 1),
+                     batch_control = list(size = 1, cores = 1),
+                     return_bsamples = FALSE)
+ fore$output 
+ sim_test$base_data
  
- joint_fit <- jointModel(lme_fit, cox_fit, timeVar = "time",
-                         method = "weibull-PH-aGH",verbose = T, 
-                         #derivForm = dform, 
-                         #parameterization = "both",
-                         iter.EM = 1000)
- summary(joint_fit)$"CoefTable-Long"
- summary(joint_fit)$"CoefTable-Event"
- summary(joint_fit)$"D"
- summary(joint_fit)$sigma^2
  
- sim_nor_nor_test <- simulate_data(model = "nor_nor",  
-                                   nsubj = 4,
-                                   av_n_i = 5,
-                                   eta = c(0.2, 0.5))
  
- fore_nor_nor <- predSurv_jm(object = fit_nor_nor, 
-                             newdata = sim_nor_nor_test$repeat_data, 
-                             forecast = list(h = 5, n = 1),
-                             B_control = list(iter = 30, warmup = 15, init = 0,
-                                              nsel_b = 1),
-                             batch_control = list(size = 2, cores = 2),
-                             return_bsamples = TRUE)
- fore_nor_nor$output 
- sim_nor_nor_test$base_data
+ #################
+ #################
+ #################
  
  sim_mod1 <- simulate_data(model = "mod1")
  fit_t_t_mod1 <- fit_jm(fixed_long = Y ~ time, 
