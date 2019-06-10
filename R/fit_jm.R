@@ -357,9 +357,7 @@ fit_jm <- function(fixed_long,
     }else if(bh == "weibull"){
       
       if(!is.null(deriv)){
-        
         res <- stan(model_code = nor_nor_jm_weibull_deriv, data = data_stan, ...)
-        
       }else{
         res <- stan(model_code = nor_nor_jm_weibull, data = data_stan, ...)
       }
@@ -386,26 +384,37 @@ fit_jm <- function(fixed_long,
   }else if(bh == "weibull"){
     
     if(model == "t_t_mod1"){
-      res <- stan(model_code = t_t_jm_mod1_weibull, data = data_stan, ...)
+      if(!is.null(deriv)){
+        res <- stan(model_code = t_t_jm_mod1_weibull_deriv, data = data_stan, ...)
+      }else{
+        res <- stan(model_code = t_t_jm_mod1_weibull, data = data_stan, ...)
+      }
+      
     } 
     if(model == "t_t_mod2"){
-      res <- stan(model_code =t_t_jm_mod2_weibull, data = data_stan, ...)
+      
+      if(!isnull(deriv)){
+        res <- stan(model_code = t_t_jm_mod2_weibull_deriv, data = data_stan, ...)
+      }else{
+        res <- stan(model_code = t_t_jm_mod2_weibull, data = data_stan, ...)
+      }
+      
     }
     if(model == "t_t_mod3"){
 
       if(!is.null(deriv)){
-        
         res <- stan(model_code = t_t_jm_mod3_weibull_deriv, data = data_stan, ...)
-        
       }else{
-        
         res <- stan(model_code = t_t_jm_mod3_weibull, data = data_stan, ...)
-        
       }
       
     }
     if(model == "nor_t_mod2"){
-      res <- stan(model_code = nor_t_jm_mod2_weibull, data = data_stan, ...)
+      if(!is.null(deriv)){
+        res <- stan(model_code = nor_t_jm_mod2_weibull_deriv, data = data_stan, ...)
+      }else{
+        res <- stan(model_code = nor_t_jm_mod2_weibull, data = data_stan, ...)
+      }
     }
     if(model == "nor_t_mod3"){
 
