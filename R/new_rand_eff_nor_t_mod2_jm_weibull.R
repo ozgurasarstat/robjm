@@ -1,4 +1,4 @@
-new_rand_eff_t_t_mod3_jm_weibull = "
+new_rand_eff_t_t_mod2_jm_weibull = "
 
 data{
 int<lower = 1> ntot;
@@ -39,7 +39,7 @@ real log_lambda;
 real log_nu;
 vector[ncol_c] omega;
 real eta;
-real phi;
+//real phi;
 real delta;
 
 }
@@ -50,8 +50,8 @@ vector[q] zero_B = rep_vector(0, q);
 
 parameters{
 matrix[ngroup, q] Bstar;
-vector<lower = 0>[ngroup] V;
-vector<lower = 0>[ntot] W;
+//vector<lower = 0>[ngroup] V;
+vector<lower = 0>[ngroup] W;
 }
 
 transformed parameters{
@@ -62,6 +62,8 @@ matrix[ngroup, q] B;
 vector[ntot] d_B;
 //vector[ngroup] d_T_B;
 vector[ntot_quad] d_quad_B;
+
+vector<lower = 0>[ntot] W_ext;
 
 //vector[ngroup] lsd_expr1;
 //vector[ngroup] lsd_expr1_bh;
@@ -76,12 +78,14 @@ vector[ntot_quad] lsd_expr2_quad_ystar;
 
 //longitudinal sub-model
 for(i in 1:ngroup){
-B[i, ] = Bstar[i, ] * sqrt(V[i]);
+B[i, ] = Bstar[i, ];// * sqrt(V[i]);
 }
 
 //Bmat = to_matrix(B', ngroup * q, 1);
 
 for(i in 1:ngroup){
+W_ext[d_ind[i, 1]:d_ind[i, 2]] = rep_vector(W[i], nrepeat[i]);
+
 d_B[d_ind[i, 1]:d_ind[i, 2]] = to_vector(d[d_ind[i, 1]:d_ind[i, 2], ] * to_matrix(B[i, ], q, 1));
 d_quad_B[Q_ind[i, 1]:Q_ind[i, 2]] = to_vector(d_quad[Q_ind[i, 1]:Q_ind[i, 2], ] * to_matrix(B[i, ], q, 1));
 }
@@ -117,10 +121,10 @@ for(i in 1:ngroup){
 Bstar[i] ~ multi_normal(zero_B, Sigma);
 }
 
-V ~ inv_gamma(phi/2, phi/2);
+//V ~ inv_gamma(phi/2, phi/2);
 W ~ inv_gamma(delta/2, delta/2);
 
-y ~ normal(x * alpha + d_B, sigma_Z * sqrt(W));
+y ~ normal(x * alpha + d_B, sigma_Z * sqrt(W_ext));
 
 target += lsd_expr2;
 
