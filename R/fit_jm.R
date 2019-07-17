@@ -59,9 +59,9 @@ fit_jm <- function(fixed_long,
   ## be sure that distribution specifications are correct
   if(!(model %in% c("nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "t_nor_mod3", 
                     "nor_t_mod2", "t_t_tv",
-                    "nor_t_mod3", "nor_t_tv"))){
+                    "nor_t_mod3", "nor_t_tv", "nor_t_tv_dof_scale"))){
     stop("Model should be one of the followings: nor_nor, t_t_mod1, t_t_mod2, t_t_mod3, 
-         nor_t_mod3, t_t_tv")
+         nor_t_mod3, t_t_tv, nor_t_tv_dof_scale")
   }
 
   ## organise priors
@@ -263,14 +263,14 @@ fit_jm <- function(fixed_long,
   
   ## prior hyperparameters
   if(bh %in% c("spline", "piecewise")){
-    if(!(model %in% c("nor_t_tv", "t_t_tv"))){
+    if(!(model %in% c("nor_t_tv", "t_t_tv", "nor_t_tv_dof_scale"))){
       priors_long <- unlist(priors)[1:4]
     }else{
       priors_long <- unlist(priors)[1:5]
     }
     priors_surv <- rev(unlist(priors))[1:3]
   }else if(bh == "weibull"){
-    if(!(model %in% c("nor_t_tv", "t_t_tv"))){
+    if(!(model %in% c("nor_t_tv", "t_t_tv", "nor_t_tv_dof_scale"))){
       priors_long <- unlist(priors)[1:4]
     }else{
       priors_long <- unlist(priors)[1:5]
@@ -336,7 +336,7 @@ fit_jm <- function(fixed_long,
     
   }
   
-  if(model %in% c("t_t_tv", "nor_t_tv")){
+  if(model %in% c("t_t_tv", "nor_t_tv", "nor_t_tv_dof_scale")){
     
     a <- splines::ns(data_long[, spline_tv[[1]]], df = (spline_tv[[2]] + 1))
     ncol_a <- ncol(a)
@@ -448,7 +448,7 @@ fit_jm <- function(fixed_long,
     
  }
 
-  if(model %in% c("t_t_tv", "nor_t_tv")){
+  if(model %in% c("t_t_tv", "nor_t_tv", "nor_t_tv_dof_scale")){
 
   if(bh %in% c("spline", "piecewise")){
     
@@ -461,6 +461,8 @@ fit_jm <- function(fixed_long,
       res <- stan(model_code = t_t_tv_jm_weibull, data = data_stan, ...)
     }else if(model == "nor_t_tv"){
       res <- stan(model_code = nor_t_tv_jm_weibull, data = data_stan, ...)
+    }else if(model == "nor_t_tv_dof_scale"){
+      res <- stan(model_code = nor_t_tv_dof_scale_jm_weibull, data = data_stan, ...)
     }
   }
     

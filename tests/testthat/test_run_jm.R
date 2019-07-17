@@ -22,14 +22,15 @@ fit_nor_nor <- fit_jm(fixed_long = CD4 ~ obstime,
                       data_surv = surv_data,
                       id_long = "patient",
                       id_surv = "patient",
-                      model = "nor_nor",
+                      model = "nor_t_tv_dof_scale",
                       timeVar = "obstime",
                       bh = "weibull",
+                      spline_tv = list("obstime", 3),
                       chains = 2,
                       cores = 2,
                       iter = 2000,
                       warmup = 1000,
-                      control = list(adapt_delta = 0.999, max_treedepth = 15) 
+                      control = list(adapt_delta = 0.9, max_treedepth = 15) 
                       )
 print(fit_nor_nor, pars = c("alpha", "Sigma", "sigmasq", "lambda", "nu", "omega", "eta"))
 traceplot(fit_nor_nor, 
