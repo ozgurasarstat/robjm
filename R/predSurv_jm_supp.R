@@ -44,8 +44,12 @@ predSurv_jm_supp <- function(object,
     if(object$model == "t_t_mod1"){
       phi <- matrix(rstan::extract(object$res)$phi)
     }
-    else if(object$model %in% c("nor_t_mod2", "nor_t_mod3")){
-      delta <- matrix(rstan::extract(object$res)$delta)     
+    else if(object$model %in% c("nor_t_mod2", "nor_t_mod3", "nor_t_fixed_dof_mod3")){
+      if(model == "nor_t_fixed_dof_mod3"){
+        delta <- matrix(object$delta, nrow = M, ncol = 1)
+      }else{
+        delta <- matrix(rstan::extract(object$res)$delta)     
+      }
     }else if(object$model == "t_nor_mod3"){
       phi   <- matrix(rstan::extract(object$res)$phi)
     }else if(object$model %in% c("t_t_mod2", "t_t_mod3")){
@@ -498,7 +502,7 @@ predSurv_jm_supp <- function(object,
   }
   
   ## nor-t mod3
-  if(model == "nor_t_mod3" & bh == "weibull"){
+  if(model %in% c("nor_t_mod3", "nor_t_fixed_dof_mod3") & bh == "weibull"){
     
     if(is.null(deriv)){
       mod <- rstan::stan_model(model_code = new_rand_eff_nor_t_mod3_jm_weibull, auto_write = TRUE)
