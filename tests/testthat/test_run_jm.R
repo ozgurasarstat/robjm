@@ -108,3 +108,24 @@ fit_t_t_tv <- fit_jm(fixed_long = CD4 ~ obstime,
                        control = list(adapt_delta = 0.99)
                      )
 print(fit_t_t_tv, pars = c("alpha", "Sigma", "phi", "sigmasq", "delta0", "beta", "zeta", "omega", "eta"))
+
+fit_nor_t_fixed_dof_mod3 <- fit_jm(fixed_long = CD4 ~ obstime, 
+                       random_long = ~ obstime, 
+                       fixed_surv = cbind(Time, death)~drug2, 
+                       data_long = long_data,
+                       data_surv = surv_data,
+                       id_long = "patient",
+                       id_surv = "patient",
+                       model = "nor_t_fixed_dof_mod3",
+                       deriv = list(deriv_fixed_formula = ~ 1,
+                                    deriv_alpha_ind = 2, 
+                                    deriv_random_formula = ~ 1, 
+                                    deriv_B_ind = 2),
+                       timeVar = "obstime",
+                       chains = 4,
+                       cores = 4,
+                       iter = 2000,
+                       warmup = 1000,
+                       control = list(adapt_delta = 0.99))
+print(fit_nor_t_fixed_dof_mod3$res, 
+      pars = c("alpha", "Sigma", "sigmasq",  "omega", "eta"))
