@@ -59,10 +59,10 @@ fit_jm <- function(fixed_long,
 
   ## be sure that distribution specifications are correct
   if(!(model %in% c("nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "t_nor_mod3", 
-                    "nor_t_fixed_dof_mod3", "nor_t_mod2", "nor_t_mod3", "t_t_tv",
+                    "nor_t_fixed_dof_mod3", "nor_gen_t_mod3", "nor_t_mod2", "nor_t_mod3", "t_t_tv",
                     "nor_t_tv", "nor_t_tv_dof_scale"))){
     stop("Model should be one of the followings: nor_nor, t_t_mod1, t_t_mod2, t_t_mod3, 
-         t_nor_mod3, nor_t_fixed_dof_mod3, nor_t_mod2, nor_t_mod3,
+         t_nor_mod3, nor_t_fixed_dof_mod3, nor_gen_t_mod3, nor_t_mod2, nor_t_mod3,
          t_t_tv, nor_t_tv, nor_t_tv_dof_scale")
   }
 
@@ -371,7 +371,7 @@ fit_jm <- function(fixed_long,
   }
   
   if(model %in% c("t_t_mod1", "t_t_mod2", "t_t_mod3", "nor_t_mod2", "nor_t_mod3", 
-                  "nor_t_fixed_dof_mod3", "t_nor_mod3")){
+                  "nor_t_fixed_dof_mod3", "nor_gen_t_mod3", "t_nor_mod3")){
     
   if(bh %in% c("spline", "piecewise")){
 
@@ -433,6 +433,14 @@ fit_jm <- function(fixed_long,
         res <- stan(model_code = nor_t_fixed_dof_jm_mod3_weibull_deriv, data = data_stan, ...)
       }else{
         res <- stan(model_code = nor_t_fixed_dof_jm_mod3_weibull, data = data_stan, ...)
+      }
+    }
+    
+    if(model == "nor_gen_t_mod3"){
+      if(!is.null(deriv)){
+        res <- stan(model_code = nor_gen_t_jm_mod3_weibull_deriv, data = data_stan, ...)
+      }else{
+        res <- stan(model_code = nor_gen_t_jm_mod3_weibull, data = data_stan, ...)
       }
     }
     

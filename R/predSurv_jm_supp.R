@@ -50,6 +50,9 @@ predSurv_jm_supp <- function(object,
       }else{
         delta <- matrix(rstan::extract(object$res)$delta)     
       }
+    }else if(object$model == "nor_gen_t_mod3"){
+      delta <- matrix(rstan::extract(object$res)$delta)
+      kappa <- matrix(rstan::extract(object$res)$kappa)
     }else if(object$model == "t_nor_mod3"){
       phi   <- matrix(rstan::extract(object$res)$phi)
     }else if(object$model %in% c("t_t_mod2", "t_t_mod3")){
@@ -501,13 +504,21 @@ predSurv_jm_supp <- function(object,
     }
   }
   
-  ## nor-t mod3
-  if(model %in% c("nor_t_mod3", "nor_t_fixed_dof_mod3") & bh == "weibull"){
+  ## nor-t mod3 & nor-t fixed dof mod3 & nor - gen_t mod3
+  if(model %in% c("nor_t_mod3", "nor_t_fixed_dof_mod3", "nor_gen_t_mod3") & bh == "weibull"){
     
-    if(is.null(deriv)){
-      mod <- rstan::stan_model(model_code = new_rand_eff_nor_t_mod3_jm_weibull, auto_write = TRUE)
+    if(model == "nor_gen_t_mod3"){
+      if(is.null(deriv)){
+        mod <- rstan::stan_model(model_code = new_rand_eff_nor_gen_t_mod3_jm_weibull, auto_write = TRUE)
+      }else{
+        mod <- rstan::stan_model(model_code = new_rand_eff_nor_gen_t_mod3_jm_weibull_deriv, auto_write = TRUE)
+      }
     }else{
-      mod <- rstan::stan_model(model_code = new_rand_eff_nor_t_mod3_jm_weibull_deriv, auto_write = TRUE)
+      if(is.null(deriv)){
+        mod <- rstan::stan_model(model_code = new_rand_eff_nor_t_mod3_jm_weibull, auto_write = TRUE)
+      }else{
+        mod <- rstan::stan_model(model_code = new_rand_eff_nor_t_mod3_jm_weibull_deriv, auto_write = TRUE)
+      }
     }
     
     data_nor_t_mod3 <- list(ntot = ntot,
@@ -560,7 +571,8 @@ predSurv_jm_supp <- function(object,
         data_nor_t_mod3$eta2 <- eta2[i, ]
       }
       
-      data_nor_t_mod3$delta      <- delta[i, ]
+      data_nor_t_mod3$delta <- delta[i, ]
+      if(model == "nor_gen_t_mod3") data_nor_t_mod3$kappa <- kappa[i, ]
       
       B_res <- rstan::sampling(mod, 
                                data = data_nor_t_mod3, 
