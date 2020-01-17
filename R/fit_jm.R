@@ -59,7 +59,8 @@ fit_jm <- function(fixed_long,
 
   ## be sure that distribution specifications are correct
   if(!(model %in% c("nor_nor", "t_t_mod1", "t_t_mod2", "t_t_mod3", "t_nor_mod3", 
-                    "nor_t_fixed_dof_mod3", "nor_gen_t_mod3", "nor_t_mod2", "nor_t_mod3", "t_t_tv",
+                    "nor_t_fixed_dof_mod3", "nor_gen_t_mod3",  
+                    "nor_t_mod2", "nor_t_mod3", "t_t_tv",
                     "nor_t_tv", "nor_t_tv_dof_scale"))){
     stop("Model should be one of the followings: nor_nor, t_t_mod1, t_t_mod2, t_t_mod3, 
          t_nor_mod3, nor_t_fixed_dof_mod3, nor_gen_t_mod3, nor_t_mod2, nor_t_mod3,
@@ -320,7 +321,7 @@ fit_jm <- function(fixed_long,
                     t_quad = t_quad)
   
   if(model == "nor_t_fixed_dof_mod3") data_stan$delta <- delta_fixed
-  
+
   if(!is.null(deriv)){
     data_stan$x_deriv_T <- x_deriv_T
     data_stan$x_deriv_quad <- x_deriv_quad
@@ -494,7 +495,7 @@ fit_jm <- function(fixed_long,
               res = res)
   
   if(model == "nor_t_fixed_dof_mod3") out$delta <- delta_fixed
-              
+
   return(out)  
   
 }

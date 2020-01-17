@@ -55,12 +55,12 @@ real eta1;
 real eta2;
 //real phi;
 real delta;
-real kappa;
 
 }
 
 transformed data{
 vector[q] zero_B = rep_vector(0, q);
+real kappa = 1;
 }
 
 parameters{

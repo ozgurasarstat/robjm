@@ -60,6 +60,7 @@ vector[ntot_quad] wt_quad; // extended quadrature weights to be used during Gaus
 
 transformed data{
 vector[q] zero_B = rep_vector(0, q);
+real kappa = 1;
 }
 
 parameters{
@@ -72,7 +73,6 @@ vector<lower = 0>[q] sigma_B; // scale parameters for random effects
 real<lower = 0> sigma_Z;      // scale parameter of measurement error
 //real<lower = 0.01, upper = 0.5> phi_inv; // inverse d.o.f. for B
 real<lower = 0.01, upper = 0.5> delta_inv; // inverse d.o.f for Z
-real<lower = 0> kappa;
 //vector<lower = 0>[ngroup] V;
 vector<lower = 0>[ntot] W;
 
@@ -178,8 +178,6 @@ Bstar ~ multi_normal(zero_B, Sigma);
 Omega ~ lkj_corr(priors_long[2]);
 sigma_B ~ cauchy(0, priors_long[3]);
 sigma_Z ~ cauchy(0, priors_long[4]);
-
-kappa ~ cauchy(0, 5);
 
 //V ~ inv_gamma((1/phi_inv)/2, (1/phi_inv)/2);
 //phi_inv ~ uniform(0.01, 0.5);//the prior is uniform with -infty and infty, constrained above

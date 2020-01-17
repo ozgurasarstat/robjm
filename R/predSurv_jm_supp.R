@@ -52,7 +52,8 @@ predSurv_jm_supp <- function(object,
       }
     }else if(object$model == "nor_gen_t_mod3"){
       delta <- matrix(rstan::extract(object$res)$delta)
-      kappa <- matrix(rstan::extract(object$res)$kappa)
+      #kappa <- matrix(rstan::extract(object$res)$kappa)
+      kappa <- matrix(1, nrow = M, ncol = 1)
     }else if(object$model == "t_nor_mod3"){
       phi   <- matrix(rstan::extract(object$res)$phi)
     }else if(object$model %in% c("t_t_mod2", "t_t_mod3")){
